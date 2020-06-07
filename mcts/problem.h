@@ -2,6 +2,8 @@
 
 #include "types.h"
 #include "utils/named_type.h"
+#include "utils/max_size_vector.h"
+#include "mcts/details/problem_impl.h"
 
 #include <cstdint>
 #include <array>
@@ -9,39 +11,35 @@
 
 namespace mcts {
 
-template <int NUM_PLAYERS, int MAX_NUM_ACTIONS, typename STATE_TYPE, typename ACTION_TYPE = uint8_t,
-          typename VALUE_TYPE = float, int MAX_CHANCE_EVENTS = 0, typename CHANCE_TYPE = uint8_t>
-class Problem
+template <typename ProblemType, typename ProblemDefinition>
+class Problem : public ProblemDefinition,  // To make all typedefs available
+                public detail::NeedsChanceEvents<ProblemDefinition::maxChanceEvents, ProblemType,
+                                                 ProblemDefinition>,  // to make sure that all chance events methods are
+                                                                      // implemented
+                public detail::NeedActionFunction<ProblemType, ProblemDefinition>  // to make sure that all action
+                                                                                   // perform methods are implemented
 {
   public:
-    using ValueType = VALUE_TYPE;
-    using ActionType = ACTION_TYPE;
-    using ChanceEventType = CHANCE_TYPE;
-    using StateType = STATE_TYPE;
-
-    static constexpr int numPlayers = NUM_PLAYERS;
-    static constexpr int maxNumActions = MAX_NUM_ACTIONS;
-    static constexpr int maxChanceEvents = MAX_CHANCE_EVENTS;
-
     // derived quantities
-    static_assert(MAX_NUM_ACTIONS > 1, "Number of actions must be > 1 so that we can plan with this problem ");
-    static constexpr bool hasChanceEvents = MAX_CHANCE_EVENTS > 0;
-    using ValueVector = std::array<ValueType, NUM_PLAYERS>;
+    static_assert(ProblemDefinition::maxNumActions > 1,
+                  "Number of actions must be > 1 so that we can plan with this problem ");
 
-
-    [[nodiscard]] ActionId actionToId(const StateType& state, const ActionType& action) const
+    [[nodiscard]] ActionId actionToId(const typename ProblemDefinition::StateType& state,
+                                      const typename ProblemDefinition::ActionType& action) const
     {
         (void)state;
         return ActionId{size_t(action)};
     }
 
-    [[nodiscard]] ActionType idToAction(const StateType& state, const ActionId& action) const
+    [[nodiscard]] typename ProblemDefinition::ActionType idToAction(const typename ProblemDefinition::StateType& state,
+                                                                    const ActionId& action) const
     {
         (void)state;
-        return static_cast<ActionType>(action.get());
+        return static_cast<typename ProblemDefinition::ActionType>(action.get());
     }
 
-    [[nodiscard]] std::string actionToString(const StateType& state, const ActionType& action) const
+    [[nodiscard]] std::string actionToString(const typename ProblemDefinition::StateType& state,
+                                             const typename ProblemDefinition::ActionType& action) const
     {
         (void)state;
         using std::to_string;
@@ -55,7 +53,7 @@ class Problem
     {
         if (other_player_id == 0)
         {
-            return NUM_PLAYERS - 1u;
+            return ProblemType::numPlayers - 1u;
         }
         else
         {

@@ -75,8 +75,8 @@ class Solver
     void visitBackpropagate(DecisionNode& node, const Edge& edge, const ValueVector& values);
     void visitBackpropagate(ChanceNode& node, const Edge& edge, const ValueVector& values);
 
-    std::atomic<bool> running_ = false;
-    std::atomic<size_t> currentIteration_ = 0;
+    bool running_ = false;
+    size_t currentIteration_ = 0;
     Parameter params_{};
 
     TreeType tree_{};

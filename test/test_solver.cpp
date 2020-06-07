@@ -26,13 +26,32 @@ std::string to_string(SelectCoin c)
     }
 }
 
+std::ostream& operator<< (std::ostream& str, SelectCoin c)
+{
+    return str << to_string(c);
+}
+
 struct RiggedToinCossState : public mcts::State<RiggedToinCossState>
 {
     std::optional<SelectCoin> player;
     std::optional<SelectCoin> world;
 };
 
-class RiggedToinCossProblem : public mcts::Problem<1, 2, RiggedToinCossState, SelectCoin, float, 2, SelectCoin>
+struct ProblemDefinition
+{
+    using ValueType = float;
+    using ActionType = SelectCoin;
+    using ChanceEventType = SelectCoin;
+    using StateType = RiggedToinCossState;
+
+    static constexpr int numPlayers = 1;
+    static constexpr int maxNumActions = 2;
+    static constexpr int maxChanceEvents = 2;
+
+    using ValueVector = ValueType;
+};
+
+class RiggedToinCossProblem : public mcts::Problem<RiggedToinCossProblem, ProblemDefinition>
 {
   public:
     [[nodiscard]] mcts::MaxSizeVector<ActionType, 2> getAvailableActions(const RiggedToinCossState& state) const
@@ -78,23 +97,19 @@ class RiggedToinCossProblem : public mcts::Problem<1, 2, RiggedToinCossState, Se
         return state.player.has_value() && state.world.has_value();
     };
 
-    ValueVector performAction(const ActionType action, const RiggedToinCossState& before,
-                              RiggedToinCossState& after) const
+    ValueVector performAction(const ActionType action, RiggedToinCossState& state) const
     {
-        after = before;
-        after.player = action;
+        state.player = action;
         return {};
     }
 
-    ValueVector performChanceEvent(const ChanceEventType& ce, const RiggedToinCossState& before,
-                                   RiggedToinCossState& after) const
+    ValueVector performChanceEvent(const ChanceEventType& ce, RiggedToinCossState& state) const
     {
-        after = before;
-        after.world = ce;
+        state.world = ce;
 
-        if (after.player == after.world)
+        if (state.player == state.world)
         {
-            return {1};
+            return 1;
         }
         return {};
     }
@@ -103,16 +118,16 @@ class RiggedToinCossProblem : public mcts::Problem<1, 2, RiggedToinCossState, Se
     {
         if (bernoulli(engine))
         {
-            return performChanceEvent(SelectCoin::HEADS, state, state);
+            return performChanceEvent(SelectCoin::HEADS, state);
         }
-        return performChanceEvent(SelectCoin::TAILS, state, state);
+        return performChanceEvent(SelectCoin::TAILS, state);
     }
 
-    ValueVector performRandomAction(const RiggedToinCossState& before, RiggedToinCossState& after) const
+    ValueVector performRandomAction(RiggedToinCossState& state) const
     {
-        auto actions = getAvailableActions(before);
+        auto actions = getAvailableActions(state);
         auto ac = actions[engine() % actions.size()];
-        return performAction(ac, before, after);
+        return performAction(ac, state);
     }
 
     mutable std::minstd_rand0 engine{};
@@ -137,16 +152,16 @@ TEST(Problem, Flow)
     auto actions = problem.getAvailableActions(state);
     ASSERT_EQ(actions.size(), 2);
 
-    auto value = problem.performAction(SelectCoin::HEADS, state, state);
-    ASSERT_FLOAT_EQ(value[0], 0.0f);
+    auto value = problem.performAction(SelectCoin::HEADS, state);
+    ASSERT_FLOAT_EQ(value, 0.0f);
 
     ASSERT_FALSE(problem.isTerminal(state));
     ASSERT_EQ(problem.getNextStageType(state), mcts::StageType::CHANCE);
     auto events = problem.getAvailableChanceEvents(state);
     ASSERT_EQ(events.size(), 2);
 
-    value = problem.performChanceEvent(SelectCoin::HEADS, state, state);
-    ASSERT_FLOAT_EQ(value[0], 1.0f);
+    value = problem.performChanceEvent(SelectCoin::HEADS, state);
+    ASSERT_FLOAT_EQ(value, 1.0f);
     ASSERT_TRUE(problem.isTerminal(state));
 }
 
@@ -159,7 +174,7 @@ TEST(Solver, GT)
 
     solver.parameter().numIterations = 10;
 
-    for (size_t i = 0; i < 10; i ++ )
+    for (size_t i = 0; i < 5; i++)
     {
         std::cout << "iterations " << solver.parameter().numIterations << "\n";
         auto action = solver.run(problem, state);
@@ -167,5 +182,4 @@ TEST(Solver, GT)
         ASSERT_EQ(action, SelectCoin::HEADS);
         solver.parameter().numIterations *= 10;
     }
-
 }

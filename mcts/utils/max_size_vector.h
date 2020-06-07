@@ -38,6 +38,7 @@ class MaxSizeVector
 
     [[nodiscard]] bool empty() const { return count_ == 0; }
     [[nodiscard]] size_t size() const { return count_; }
+    [[nodiscard]] size_t capacity() const { return MAX_SIZE; }
 
     void erase(T* elem)
     {

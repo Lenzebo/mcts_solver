@@ -4,12 +4,13 @@
 #include <array>
 #include <iostream>
 
-#include "../mcts/state.h"
-#include "../mcts/problem.h"
-#include "../mcts/utils/max_size_vector.h"
+#include "mcts/state.h"
+#include "mcts/problem.h"
+#include "mcts/utils/max_size_vector.h"
 
 #define BOARD_EMPTY 0
 
+namespace ttt {
 class TicTacToeState : public mcts::State<TicTacToeState>
 {
   public:
@@ -50,15 +51,26 @@ enum Actions
     BOTTOM_RIGHT = 8
 };
 
-class TicTacToeProblem : public mcts::Problem<2, 9, TicTacToeState>
+struct ProblemDefinition
+{
+    using ValueType = float;
+    using ActionType = Actions;
+    using ChanceEventType = mcts::NoEvent;
+    using StateType = TicTacToeState;
+
+    static constexpr int numPlayers = 2;
+    static constexpr int maxNumActions = 9;
+    static constexpr int maxChanceEvents = 0;
+
+    using ValueVector = std::array<float, 2>;
+};
+
+class TicTacToeProblem : public mcts::Problem<TicTacToeProblem, ProblemDefinition>
 {
   public:
     TicTacToeProblem(){};
 
-    mcts::StageType getNextStageType(const TicTacToeState&) const
-    {
-        return mcts::StageType::DECISION;
-    }
+    mcts::StageType getNextStageType(const TicTacToeState&) const { return mcts::StageType::DECISION; }
 
     /**
      * Should return a list of all possible actions for this player
@@ -118,7 +130,7 @@ class TicTacToeProblem : public mcts::Problem<2, 9, TicTacToeState>
             {
                 if (state.board[i] == BOARD_EMPTY)
                 {
-                    remaining_actions.push_back(i);
+                    remaining_actions.push_back(static_cast<Actions>(i));
                 }
                 else
                 {
@@ -131,84 +143,79 @@ class TicTacToeProblem : public mcts::Problem<2, 9, TicTacToeState>
     /**
      * Apply the action to the gamestate. Gamestate will be changed with this
      */
-    ValueVector performAction(const ActionType action, const TicTacToeState& before, TicTacToeState& after) const
+    ValueVector performAction(const ActionType action, TicTacToeState& state) const
     {
-        if (&before != &after)
-        {
-            // if before and after point to different memory locations, we need to first copy the before state to after
-            after = before;
-        }
-
         assert(action < 9 && "Action identifier must be between 0 and 8");
-        assert(before.board[action] == BOARD_EMPTY && "Action is not possible, because already played");
+        assert(state.board[action] == BOARD_EMPTY && "Action is not possible, because already played");
         ValueVector retval{};
 
-        after.board[action] = after.getCurrentPlayer() + 1;
-        after.num_remaining_actions--;
+        state.board[action] = state.getCurrentPlayer() + 1;
+        state.num_remaining_actions--;
 
-        assert(after.num_remaining_actions <= 9);
+        assert(state.num_remaining_actions <= 9);
 
-        if (didPlayerWin(after, after.getCurrentPlayer()))
+        if (didPlayerWin(state, state.getCurrentPlayer()))
         {
-            retval[after.getCurrentPlayer()] = 1;
-            after.num_remaining_actions = 0;
+            retval[state.getCurrentPlayer()] = 1;
+            state.num_remaining_actions = 0;
         }
-        else if (after.num_remaining_actions == 0)
+        else if (state.num_remaining_actions == 0)
         {
             retval[0] = 0.5;
             retval[1] = 0.5;
         }
-        after.increasePlayer(2);
+        state.increasePlayer(2);
         return retval;
     }
 
-    ValueVector performRandomAction(const TicTacToeState& before, TicTacToeState& after) const
+    ValueVector performRandomAction(TicTacToeState& state) const
     {
-        assert(before.num_remaining_actions > 0);
+        assert(state.num_remaining_actions > 0);
 
         // check whether we have to stop a instant win, or if we can win instantly
         for (uint8_t i = 0; i < 9; ++i)
         {
             uint8_t row = i / 3;
             uint8_t column = i % 3;
-            if (before.board[i] == BOARD_EMPTY)
+            Actions action = static_cast<Actions>(i);
+            if (state.board[i] == BOARD_EMPTY)
             {
                 // check rows:
-                if (before.board[row * 3 + (column + 1) % 3] == before.board[row * 3 + (column + 2) % 3] &&
-                    before.board[row * 3 + (column + 2) % 3] != BOARD_EMPTY)
+                if (state.board[row * 3 + (column + 1) % 3] == state.board[row * 3 + (column + 2) % 3] &&
+                    state.board[row * 3 + (column + 2) % 3] != BOARD_EMPTY)
                 {
-                    return performAction(i, before, after);
+                    return performAction(action, state);
                 }
-                else if (before.board[((row + 1) % 3) * 3 + column] == before.board[((row + 2) % 3) * 3 + column] &&
-                         before.board[((row + 1) % 3) * 3 + column] != BOARD_EMPTY)
+                else if (state.board[((row + 1) % 3) * 3 + column] == state.board[((row + 2) % 3) * 3 + column] &&
+                         state.board[((row + 1) % 3) * 3 + column] != BOARD_EMPTY)
                 {
-                    return performAction(i, before, after);
+                    return performAction(action, state);
                 }
                 else if (row == column &&
-                         before.board[((row + 1) % 3) * 3 + (column + 1) % 3] ==
-                             before.board[((row + 2) % 3) * 3 + (column + 2) % 3] &&
-                         before.board[((row + 2) % 3) * 3 + (column + 2) % 3] != BOARD_EMPTY)
+                         state.board[((row + 1) % 3) * 3 + (column + 1) % 3] ==
+                             state.board[((row + 2) % 3) * 3 + (column + 2) % 3] &&
+                         state.board[((row + 2) % 3) * 3 + (column + 2) % 3] != BOARD_EMPTY)
                 {
-                    return performAction(i, before, after);
+                    return performAction(action, state);
                 }
                 else if (row == 2 - column &&
-                         before.board[((row + 1) % 3) * 3 + (column + 3 - 1) % 3] ==
-                             before.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] &&
-                         before.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] != BOARD_EMPTY)
+                         state.board[((row + 1) % 3) * 3 + (column + 3 - 1) % 3] ==
+                             state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] &&
+                         state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] != BOARD_EMPTY)
                 {
-                    return performAction(i, before, after);
+                    return performAction(action, state);
                 }
             }
         }
 
-        uint8_t actidx = rand() % before.num_remaining_actions;
+        uint8_t actidx = rand() % state.num_remaining_actions;
         for (uint8_t i = 0; i < 9; ++i)
         {
-            if (before.board[i] == BOARD_EMPTY)
+            if (state.board[i] == BOARD_EMPTY)
             {
                 if (actidx == 0)
                 {
-                    return performAction(i, before, after);
+                    return performAction(static_cast<Actions>(i), state);
                 }
                 else
                 {
@@ -244,3 +251,4 @@ class TicTacToeProblem : public mcts::Problem<2, 9, TicTacToeState>
                 ((state.board[2] == pp1) && (state.board[4] == pp1) && (state.board[6] == pp1)));
     }
 };
+}

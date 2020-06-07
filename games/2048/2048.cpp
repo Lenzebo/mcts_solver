@@ -2,38 +2,17 @@
 
 namespace g2048 {
 
-size_t G2048State::biggestTile() const
-{
-    uint8_t max = 0;
-    for (uint8_t y = 0; y < BOARD_DIMS; ++y)
-    {
-        for (uint8_t x = 0; x < BOARD_DIMS; ++x)
-        {
-            max = std::max(max, board(x, y));
-        }
-    }
-    return 1U << max;
-}
+
 
 std::ostream& G2048State::writeToStream(std::ostream& stream) const  // NOLINT
 {
-    for (uint8_t y = 0; y < BOARD_DIMS; ++y)
-    {
-        for (uint8_t x = 0; x < BOARD_DIMS; ++x)
-        {
-            auto c = board(x, y);
-            if (c > 0)
-            {
-                stream << std::setw(5) << int(1U << board(x, y)) << " ";
-            }
-            else
-            {
-                stream << std::setw(6) << "0 ";
-            }
-        }
-        stream << "\n";
-    }
+    stream << board();
     return mcts::State<G2048State>::writeToStream(stream);
+}
+bool G2048State::empty(size_t x, size_t y) const
+{
+    auto value = 1 << board(x, y);
+    return value == 1;
 }
 
 std::string G2048Problem::actionToString(const StateType& state, const ActionType& action) const  // NOLINT
@@ -128,36 +107,24 @@ mcts::StageType G2048Problem::getNextStageType(const G2048State& state)
 /**
  * Apply the action to the gamestate. Gamestate will be changed with this
  */
-G2048Problem::ValueVector G2048Problem::performChanceEvent(const ChanceEventType event, const G2048State& before,
-                                                           G2048State& after) const
+ProblemDefinition::ValueVector G2048Problem::performChanceEvent(const ChanceEventType event, G2048State& state) const
 {
-    assert(before.isChanceNext());
-    if (&before != &after)
-    {
-        // if before and after point to different memory locations, we need to first copy the before state to after
-        after = before;
-    }
-    after.setNextChance(false);
-    assert(after.board(event.x, event.y) == 0);
+    assert(state.isChanceNext());
+    state.setNextChance(false);
+    assert(state.board(event.x, event.y) == 0);
 
-    after.setBoard(event.x, event.y, event.value);
+    state.setBoard(event.x, event.y, event.value);
 
     return {};
 }
 /**
  * Apply the action to the gamestate. Gamestate will be changed with this
  */
-G2048Problem::ValueVector G2048Problem::performAction(const ActionType action, const G2048State& before,
-                                                      G2048State& after) const
+ProblemDefinition::ValueVector G2048Problem::performAction(const ActionType action, G2048State& state) const
 {
-    assert(!before.isChanceNext());
+    assert(!state.isChanceNext());
 
     ValueVector retval{0};
-    if (&before != &after)
-    {
-        // if before and after point to different memory locations, we need to first copy the before state to after
-        after = before;
-    }
 
     int start = 0;
     int end = 0;
@@ -197,26 +164,26 @@ G2048Problem::ValueVector G2048Problem::performAction(const ActionType action, c
                 const size_t xd = upDown ? otherdim : xyd;
                 const size_t yd = upDown ? xyd : otherdim;
 
-                if (after.board(xd, yd) == 0)
+                if (state.board(xd, yd) == 0)
                 {
                     continue;
                 }
 
-                if (after.board(x, y) == 0)
+                if (state.board(x, y) == 0)
                 {
-                    after.setBoard(x, y, after.board(xd, yd));
+                    state.setBoard(x, y, state.board(xd, yd));
                     numUpdatedCells++;
-                    after.setBoard(xd, yd, 0);
+                    state.setBoard(xd, yd, 0);
                     numUpdatedCells++;
                     changed = true;
                     break;
                 }
-                else if (after.board(x, y) == after.board(xd, yd))
+                else if (state.board(x, y) == state.board(xd, yd))
                 {
-                    after.setBoard(x, y, after.board(x, y) + 1);
+                    state.setBoard(x, y, state.board(x, y) + 1);
                     numUpdatedCells++;
-                    retval[0] += 1U << after.board(xd, yd);
-                    after.setBoard(xd, yd, 0);
+                    retval += 1U << state.board(xd, yd);
+                    state.setBoard(xd, yd, 0);
                     numUpdatedCells++;
                     break;
                 }
@@ -233,23 +200,21 @@ G2048Problem::ValueVector G2048Problem::performAction(const ActionType action, c
     }
 
     const bool didChangeAnyCell = numUpdatedCells > 0;
-    after.setNextChance(didChangeAnyCell);
-
-    //        after.addRandomElement();
+    state.setNextChance(didChangeAnyCell);
     return retval;
 }
 
-G2048Problem::ValueVector G2048Problem::performRandomChanceEvent(G2048State& state) const
+ProblemDefinition::ValueVector G2048Problem::performRandomChanceEvent(G2048State& state) const
 {
     addRandomElement(state);
     return {};
 }
 
-G2048Problem::ValueVector G2048Problem::performRandomAction(const G2048State& before, G2048State& after) const
+ProblemDefinition::ValueVector G2048Problem::performRandomAction(G2048State& state) const
 {
-    auto actions = getAvailableActions(before);
+    auto actions = getAvailableActions(state);
     auto ac = actions[engine() % actions.size()];
-    return performAction(ac, before, after);
+    return performAction(ac, state);
 }
 
 [[nodiscard]] bool G2048Problem::isTerminal(const G2048State& state) const
@@ -325,19 +290,7 @@ bool G2048Problem::canMoveDown(const G2048State& state) const
 
 [[nodiscard]] size_t G2048Problem::countEmptyCells(const G2048State& state) const
 {
-    size_t count = 0;
-    for (uint8_t x = 0; x < BOARD_DIMS; ++x)
-    {
-        for (uint8_t y = 0; y < BOARD_DIMS; ++y)
-        {
-            auto cell = state.board(x, y);
-            if (cell == 0)
-            {
-                count++;
-            }
-        }
-    }
-    return count;
+    return state.board().numEmpty();
 }
 
 void G2048Problem::addRandomElement(G2048State& state) const
@@ -375,5 +328,6 @@ void G2048Problem::addRandomElement(G2048State& state) const
     }
     assert(false);
 }
+
 
 }  // namespace g2048

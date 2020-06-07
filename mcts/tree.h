@@ -54,7 +54,7 @@ struct Tree
                     remainingEvents = p.getAvailableChanceEvents(s);
                 }
             }
-            MaxSizeVector<std::pair<float, ChanceEventType>, ProblemType::maxChanceEvents> remainingEvents{};
+            MaxSizeVector<std::pair<float, ChanceEventType>, ProblemType::maxChanceEvents> remainingEvents;
         };
 
         using PayloadType = std::variant<DecisionNode, ChanceNode>;

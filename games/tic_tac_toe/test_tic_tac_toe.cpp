@@ -13,10 +13,11 @@
 #include <fstream>
 #include <chrono>
 
-#include "games/GameTicTacToe.h"
+#include "games/TicTacToe/GameTicTacToe.h"
 #include "mcts/solver.h"
 
 using namespace mcts;
+using namespace ttt;
 
 void testGameStateTicTacToe()
 {
@@ -40,7 +41,7 @@ void testGameStateTicTacToe()
             }
             std::cout << "Which Action should be performed?\n";
             std::cin >> action_id;
-            auto value = game.performAction(possible_actions[action_id], state, state);
+            auto value = game.performAction(possible_actions[action_id], state);
             std::cout << "Value: " << value[0] << ", " << value[1] << "\n";
         }
         else
@@ -55,7 +56,7 @@ void testGameStateTicTacToe()
             solver.parameter().numIterations = 100000;
             auto action = solver.run(game, state);
             solver.printTopLevelUtilities();
-            auto value = game.performAction(action, state, state);
+            auto value = game.performAction(action, state);
             std::cout << "Value: " << value[0] << ", " << value[1] << "\n";
         }
     }
@@ -94,13 +95,13 @@ int testMCTSTicTacToe(bool switch_players, size_t& mctsIterations)
         if ((state.getCurrentPlayer() == 0 && !switch_players) || (state.getCurrentPlayer() == 1 && switch_players))
         {
             auto action = solver.run(game, state);
-            rewards = game.performAction(action, state, state);
+            rewards = game.performAction(action, state);
             mctsIterations += solver.parameter().numIterations;
         }
         else
         {
             auto action = solver.run(game, state);
-            rewards = game.performAction(action, state, state);
+            rewards = game.performAction(action, state);
             mctsIterations += solver.parameter().numIterations;
         }
     }

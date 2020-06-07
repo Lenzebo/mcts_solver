@@ -6,28 +6,6 @@
 
 namespace mcts {
 
-template <typename T, size_t N>
-std::array<T, N> operator+(const std::array<T, N>& a1, const std::array<T, N>& a2)
-{
-    std::array<T, N> retval{};
-    for (size_t i = 0; i < N; ++i)
-    {
-        retval[i] = a1[i] + a2[i];
-    }
-    return retval;
-}
-
-template <typename T, size_t N>
-std::array<T, N> operator*(const float f, const std::array<T, N>& a)
-{
-    std::array<T, N> retval{};
-    for (size_t i = 0; i < N; ++i)
-    {
-        retval[i] = f * a[i];
-    }
-    return retval;
-}
-
 template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy>
 typename Solver<ProblemType, SelectionPolicy, RolloutPolicy>::ActionType
 Solver<ProblemType, SelectionPolicy, RolloutPolicy>::run(const ProblemType& problem, const StateType& root)
@@ -94,7 +72,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::expansion(const Node& 
     for (const auto& action : decNode.remainingActions)
     {
         auto new_state = currentNode.state;
-        ValueVector rewards = currentNode.problem.performAction(action, new_state, new_state);
+        ValueVector rewards = currentNode.problem.performAction(action, new_state);
 
         Node newNode(currentNode.problem, new_state);
         newNode.nodeValue = currentNode.nodeValue + rewards;
@@ -119,7 +97,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::expansion(Solver::Node
         for (const auto& event : chanceNode.remainingEvents)
         {
             auto new_state = currentNode.state;
-            ValueVector rewards = currentNode.problem.performChanceEvent(event.second, new_state, new_state);
+            ValueVector rewards = currentNode.problem.performChanceEvent(event.second, new_state);
 
             Node newNode(currentNode.problem, new_state);
             newNode.nodeValue = currentNode.nodeValue + rewards;
@@ -227,7 +205,14 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::visitBackpropagate(Sol
                                                                              const Edge& edge,
                                                                              const ValueVector& values)
 {
-    node.statistics.visitWithValue(edge.index, values[node.playerId]);
+    if constexpr(ProblemType::numPlayers > 1)
+    {
+        node.statistics.visitWithValue(edge.index, values[node.playerId]);
+    }
+    else
+    {
+        node.statistics.visitWithValue(edge.index, values);
+    }
 }
 template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy>
 void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::visitBackpropagate(Solver::Node& node, const Edge& edge,

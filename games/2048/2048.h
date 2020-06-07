@@ -6,14 +6,14 @@
 #include <random>
 #include <iomanip>
 
-#include "../mcts/state.h"
-#include "../mcts/problem.h"
+#include "mcts/state.h"
+#include "mcts/problem.h"
 #include "mcts/utils/max_size_vector.h"
+
+#include "board.h"
 
 namespace g2048 {
 
-constexpr size_t BOARD_DIMS = 4;
-constexpr size_t NUM_CELLS = BOARD_DIMS * BOARD_DIMS;
 constexpr float PROBABILITY_SPAWN_2 = 0.8f;                        // probability for a 2 is 80%,
 constexpr float PROBABILITY_SPAWN_4 = 1.0f - PROBABILITY_SPAWN_2;  // probability for a 4 is 20%
 
@@ -34,15 +34,6 @@ struct ChanceEvent
 
 class G2048Problem;
 
-struct Board
-{
-    uint8_t at(size_t x, size_t y) const { return values_[x][y]; }
-    void set(size_t x, size_t y, uint8_t value) { values_[x][y] = value; }
-
-  private:
-    std::array<std::array<uint8_t, BOARD_DIMS>, BOARD_DIMS> values_{};
-};
-
 class G2048State : public mcts::State<G2048State>
 {
   public:
@@ -53,12 +44,12 @@ class G2048State : public mcts::State<G2048State>
 
     std::ostream& writeToStream(std::ostream& stream) const;  // NOLINT
 
-    [[nodiscard]] size_t biggestTile() const;
     [[nodiscard]] uint8_t board(size_t x, size_t y) const { return board_.at(x, y); }
+    [[nodiscard]] bool empty(size_t x, size_t y) const;  //{ return board(x, y); }
 
     void setBoard(size_t x, size_t y, uint8_t value) { board_.set(x, y, value); }
 
-    [[nodiscard]] Board board() const { return board_; }
+    [[nodiscard]] const Board& board() const { return board_; }
     [[nodiscard]] bool isChanceNext() const { return nextIsChance; }
     void setNextChance(bool isChance) { nextIsChance = isChance; }
 
@@ -67,7 +58,21 @@ class G2048State : public mcts::State<G2048State>
     bool nextIsChance = true;
 };
 
-class G2048Problem : public mcts::Problem<1, 4, G2048State, Actions, float, 32, ChanceEvent>
+struct ProblemDefinition
+{
+    using ValueType = float;
+    using ActionType = Actions;
+    using ChanceEventType = ChanceEvent;
+    using StateType = G2048State;
+
+    static constexpr int numPlayers = 1;
+    static constexpr int maxNumActions = 4;
+    static constexpr int maxChanceEvents = 32;
+
+    using ValueVector = ValueType;
+};
+
+class G2048Problem : public mcts::Problem<G2048Problem, ProblemDefinition>
 {
   public:
     G2048Problem() = default;
@@ -80,11 +85,11 @@ class G2048Problem : public mcts::Problem<1, 4, G2048State, Actions, float, 32, 
     [[nodiscard]] mcts::MaxSizeVector<std::pair<float, ChanceEvent>, NUM_CELLS * 2> getAvailableChanceEvents(
         const G2048State& state) const;
 
-    [[nodiscard]] ValueVector performAction(const ActionType action, const G2048State& before, G2048State& after) const;
-    [[nodiscard]] ValueVector performChanceEvent(const ChanceEventType event, const G2048State& before,
-                                                 G2048State& after) const;
+    ValueVector performAction(const ActionType action, G2048State& state) const;
+    ValueVector performChanceEvent(const ChanceEventType event, G2048State& state) const;
 
-    [[nodiscard]] ValueVector performRandomChanceEvent(G2048State& state) const;
+    ValueVector performRandomChanceEvent(G2048State& state) const;
+    ProblemDefinition::ValueVector performRandomAction(G2048State& state) const;
 
     [[nodiscard]] bool isTerminal(const G2048State& state) const;
 
