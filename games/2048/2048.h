@@ -45,7 +45,7 @@ class G2048State : public mcts::State<G2048State>
     std::ostream& writeToStream(std::ostream& stream) const;  // NOLINT
 
     [[nodiscard]] uint8_t board(size_t x, size_t y) const { return board_.at(x, y); }
-    [[nodiscard]] bool empty(size_t x, size_t y) const;  //{ return board(x, y); }
+    [[nodiscard]] bool empty(size_t x, size_t y) const;
 
     void setBoard(size_t x, size_t y, uint8_t value) { board_.set(x, y, value); }
 
@@ -94,10 +94,17 @@ class G2048Problem : public mcts::Problem<G2048Problem, ProblemDefinition>
     [[nodiscard]] bool isTerminal(const G2048State& state) const;
 
   private:
-    bool canMoveLeft(const G2048State& state) const;
-    bool canMoveRight(const G2048State& state) const;
-    bool canMoveUp(const G2048State& state) const;
-    bool canMoveDown(const G2048State& state) const;
+    struct CanMove
+    {
+        bool left{false};
+        bool right{false};
+        bool up{false};
+        bool down{false};
+        bool any() const { return left || right || up || down; }
+        bool all() const { return left && right && up && down; }
+    };
+
+    CanMove canMove(const G2048State& state) const;
     [[nodiscard]] size_t countEmptyCells(const G2048State& state) const;
 
     void addRandomElement(G2048State& state) const;

@@ -2,6 +2,10 @@
 
 namespace mcts {
 
+/**
+ * @brief Class performing a rollout with a given depth (and a given discount factor) using the given (templated) policy
+ * @tparam Policy policy to use. has to implement a getAction(state,problem) -> Action function in order to be called
+ */
 template <typename Policy>
 class RolloutPolicy
 {

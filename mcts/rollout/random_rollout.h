@@ -6,7 +6,7 @@
 namespace mcts {
 
 /**
- * @brief Policy performing a
+ * @brief Policy performing a random move as default rollout policy
  */
 class RandomPolicy
 {

@@ -3,11 +3,13 @@
 #include <variant>
 #include "../solver.h"
 
+#include "selection.h"
+
 #include <random>
 
 namespace mcts {
 template <typename ValueType>
-class UCB1SelectionPolicy
+class UCB1SelectionPolicy : public SelectionPolicy<UCB1SelectionPolicy<ValueType>>
 {
   public:
     static_assert(std::is_arithmetic_v<ValueType>, "Value must be an arithmetic type");
@@ -23,34 +25,7 @@ class UCB1SelectionPolicy
     UCB1SelectionPolicy(const Parameter& params) : params_(params) {}
 
     template <typename Node>
-    size_t selectSuccessor(const Node& currentNode)
-    {
-        return currentNode.visit(*this);
-    }
-
-    template <typename Node>
-    size_t operator()(const Node&, const typename Node::ChanceNode& chance) const
-    {
-        static thread_local std::minstd_rand0 engine{};
-        static thread_local std::uniform_real_distribution<float> dist{0, 1.0f};
-
-        float randVal = dist(engine);
-
-        size_t counter = 0;
-        for (const auto& ev : chance.remainingEvents)
-        {
-            if (randVal < ev.first)
-            {
-                return counter;
-            }
-            randVal -= ev.first;
-            counter++;
-        }
-        return chance.remainingEvents.size() - 1;
-    }
-
-    template <typename Node>
-    size_t operator()(const Node&, const typename Node::DecisionNode& decision) const
+    size_t selectDecisionNodeSuccessor(const Node&, const typename Node::DecisionNode& decision)
     {  // find best child based on UCT
         float best_uct_value = std::numeric_limits<float>::lowest();
 

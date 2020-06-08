@@ -128,7 +128,7 @@ std::vector<Result> evaluatePolicy(Policy policy, size_t count)
 
 int main(int, char**)
 {
-    size_t count = 1000;
+    size_t count = 10;
     {
         std::cout << "#### RandomPolicy: " << std::endl;
         evaluatePolicy(RandomPolicy{}, count);

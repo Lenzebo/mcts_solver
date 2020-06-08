@@ -2,8 +2,6 @@
 
 namespace g2048 {
 
-
-
 std::ostream& G2048State::writeToStream(std::ostream& stream) const  // NOLINT
 {
     stream << board();
@@ -52,21 +50,21 @@ mcts::StageType G2048Problem::getNextStageType(const G2048State& state)
         return {};
     }
 
-    // TODO(DLE) find out whether we can swipe in any direction
     mcts::MaxSizeVector<Actions, 4> retval{};
-    if (canMoveUp(state))
+    auto can = canMove(state);
+    if (can.up)
     {
         retval.push_back(UP);
     }
-    if (canMoveLeft(state))
+    if (can.left)
     {
         retval.push_back(LEFT);
     }
-    if (canMoveRight(state))
+    if (can.right)
     {
         retval.push_back(RIGHT);
     }
-    if (canMoveDown(state))
+    if (can.down)
     {
         retval.push_back(DOWN);
     }
@@ -219,73 +217,49 @@ ProblemDefinition::ValueVector G2048Problem::performRandomAction(G2048State& sta
 
 [[nodiscard]] bool G2048Problem::isTerminal(const G2048State& state) const
 {
-    return !state.isChanceNext() && !canMoveLeft(state) && !canMoveRight(state) && !canMoveUp(state) &&
-           !canMoveDown(state);
+    auto can = canMove(state);
+    return !state.isChanceNext() && !can.any();
 }
 
-bool G2048Problem::canMoveLeft(const G2048State& state) const
+G2048Problem::CanMove G2048Problem::canMove(const G2048State& state) const
 {
-    for (size_t x = 0; x < BOARD_DIMS - 1; ++x)
+    G2048Problem::CanMove retval{};
+    for (size_t x = 0; x < BOARD_DIMS; ++x)
     {
         for (size_t y = 0; y < BOARD_DIMS; ++y)
         {
             auto c = state.board(x, y);
-            auto cright = state.board(x + 1, y);
-            if (cright > 0 && (c == 0 || c == cright))
+            if (x < BOARD_DIMS - 1)
             {
-                return true;
+                auto cright = state.board(x + 1, y);
+                if (cright > 0 && (c == 0 || c == cright))
+                {
+                    retval.left = true;
+                }
+                if (c > 0 && (cright == 0 || c == cright))
+                {
+                    retval.right = true;
+                }
+            }
+            if (y < BOARD_DIMS - 1)
+            {
+                auto cbelow = state.board(x, y + 1);
+                if (cbelow > 0 && (c == 0 || c == cbelow))
+                {
+                    retval.up = true;
+                }
+                if (c > 0 && (cbelow == 0 || c == cbelow))
+                {
+                    retval.down = true;
+                }
+            }
+            if (retval.all())
+            {
+                return retval;
             }
         }
     }
-    return false;
-}
-bool G2048Problem::canMoveRight(const G2048State& state) const
-{
-    for (size_t x = 0; x < BOARD_DIMS - 1; ++x)
-    {
-        for (size_t y = 0; y < BOARD_DIMS; ++y)
-        {
-            auto c = state.board(x, y);
-            auto cright = state.board(x + 1, y);
-            if (c > 0 && (cright == 0 || c == cright))
-            {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-bool G2048Problem::canMoveUp(const G2048State& state) const
-{
-    for (size_t y = 0; y < BOARD_DIMS - 1; ++y)
-    {
-        for (size_t x = 0; x < BOARD_DIMS; ++x)
-        {
-            auto c = state.board(x, y);
-            auto cbelow = state.board(x, y + 1);
-            if (cbelow > 0 && (c == 0 || c == cbelow))
-            {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-bool G2048Problem::canMoveDown(const G2048State& state) const
-{
-    for (size_t y = 0; y < BOARD_DIMS - 1; ++y)
-    {
-        for (size_t x = 0; x < BOARD_DIMS; ++x)
-        {
-            auto c = state.board(x, y);
-            auto cbelow = state.board(x, y + 1);
-            if (c > 0 && (cbelow == 0 || c == cbelow))
-            {
-                return true;
-            }
-        }
-    }
-    return false;
+    return retval;
 }
 
 [[nodiscard]] size_t G2048Problem::countEmptyCells(const G2048State& state) const
@@ -328,6 +302,5 @@ void G2048Problem::addRandomElement(G2048State& state) const
     }
     assert(false);
 }
-
 
 }  // namespace g2048
