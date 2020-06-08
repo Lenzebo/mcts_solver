@@ -35,7 +35,8 @@ Result playG2048WithPolicy(Policy& policy)
     {
         if (game.getNextStageType(state) == mcts::StageType::DECISION)
         {
-            rewards += policy.performAction(state, game);
+            auto action = policy.getAction(state, game);
+            rewards += game.performAction(action, state);
             numMoves++;
 //            state.print();
         }
@@ -44,7 +45,7 @@ Result playG2048WithPolicy(Policy& policy)
             rewards += game.performRandomChanceEvent(state);
         }
     }
-        state.print();
+//        state.print();
     //    std::cout << "Final score is " << rewards << "\n";
 
     auto end = std::chrono::system_clock::now();
@@ -110,14 +111,14 @@ void analyzeResults(std::vector<Result> results)
 }
 
 template <typename Policy>
-std::vector<Result> evaluatePolicy(const Policy& policy, size_t count)
+std::vector<Result> evaluatePolicy(Policy policy, size_t count)
 {
     std::vector<Result> results;
     std::cout << "[";
     for (size_t i = 0; i < count; ++i)
     {
         results.push_back(playG2048WithPolicy(policy));
-        std::cout << "##";
+//        std::cout << "##";
         std::cout.flush();
     }
     std::cout << "]\n";
@@ -127,7 +128,7 @@ std::vector<Result> evaluatePolicy(const Policy& policy, size_t count)
 
 int main(int, char**)
 {
-    size_t count = 10;
+    size_t count = 1000;
     {
         std::cout << "#### RandomPolicy: " << std::endl;
         evaluatePolicy(RandomPolicy{}, count);
@@ -140,7 +141,7 @@ int main(int, char**)
 
     {
         std::cout << "#### MCRolloutPolicy (1 / 10 / 0.95): " << std::endl;
-        evaluatePolicy(g2048::MCRolloutPolicy{1, 10, 0.95f}, count);
+        evaluatePolicy(g2048::MCRolloutPolicy{1, 100, 0.95f}, count);
     }
 
     {
@@ -155,7 +156,7 @@ int main(int, char**)
     }
     {
         std::cout << "#### MCTS (1000) with heuristic rollout: " << std::endl;
-        auto solver = getMCTSSolverHeuristicRollout(1000);
+        auto solver = getMCTSSolverHeuristicRollout(500);
         evaluatePolicy(g2048::MCTSPolicy{solver}, count);
     }
 
@@ -169,15 +170,4 @@ int main(int, char**)
         auto solver = getMCTSSolverRandomRollout(1000);
         evaluatePolicy(g2048::MCTSPolicy{solver}, count);
     }
-
-    {
-        std::cout << "#### MCTS (100) with heuristic smart rollout: " << std::endl;
-        auto solver = getMCTSSolverSmartRollout(100);
-        evaluatePolicy(g2048::MCTSPolicy{solver}, count);
-    }
-
-    //    for (const auto& result : results)
-    //    {
-    //        std::cout << "Score: " << result.score << ", biggest tile: " << result.biggestTile << "\n";
-    //    }
 }

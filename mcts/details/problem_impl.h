@@ -37,8 +37,6 @@ class NeedActionFunction
     [[nodiscard]] ActionsVector getAvailableActions(const typename ProblemDefinition::StateType& state) const;
     [[nodiscard]] typename ProblemDefinition::ValueVector performAction(
         const typename ProblemDefinition::ActionType action, typename ProblemDefinition::StateType& state) const;
-    [[nodiscard]] typename ProblemDefinition::ValueVector performRandomAction(
-        typename ProblemDefinition::StateType& state) const;
 };
 
 }

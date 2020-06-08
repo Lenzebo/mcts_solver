@@ -13,7 +13,7 @@
 #include <fstream>
 #include <chrono>
 
-#include "games/TicTacToe/GameTicTacToe.h"
+#include "tic_tac_toe.h"
 #include "mcts/solver.h"
 
 using namespace mcts;
@@ -52,7 +52,7 @@ void testGameStateTicTacToe()
             //            auto tree_policy = std::make_shared<UCB1TreePolicy>();
             //            tree_policy->setExplorationConstant(0.7);
             //            tree_policy->setMinMax(0, 1);
-            mcts::Solver<TicTacToeProblem> solver;
+            mcts::Solver<TicTacToeProblem, UCB1SelectionPolicy<float>, RolloutPolicy<ttt::TicTacToePolicy> > solver;
             solver.parameter().numIterations = 100000;
             auto action = solver.run(game, state);
             solver.printTopLevelUtilities();
@@ -87,7 +87,7 @@ int testMCTSTicTacToe(bool switch_players, size_t& mctsIterations)
     TicTacToeState state;
     TicTacToeProblem game;
     TicTacToeProblem::ValueVector rewards;
-    static mcts::Solver<TicTacToeProblem> solver;
+    static mcts::Solver<TicTacToeProblem, UCB1SelectionPolicy<float>, RolloutPolicy<ttt::TicTacToePolicy> > solver;
     solver.parameter().numIterations = 1000;
 
     while (!game.isTerminal(state))

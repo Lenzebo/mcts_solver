@@ -20,9 +20,10 @@ class Problem : public ProblemDefinition,  // To make all typedefs available
                                                                                    // perform methods are implemented
 {
   public:
-    // derived quantities
+    // checks to catch errors in ProblemDefinition early
     static_assert(ProblemDefinition::maxNumActions > 1,
                   "Number of actions must be > 1 so that we can plan with this problem ");
+    static_assert(std::is_arithmetic_v<typename ProblemDefinition::ValueType>, "Valuetype must be arithmetic");
 
     [[nodiscard]] ActionId actionToId(const typename ProblemDefinition::StateType& state,
                                       const typename ProblemDefinition::ActionType& action) const

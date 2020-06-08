@@ -1,6 +1,8 @@
 #pragma once
 #include "rollout.h"
 
+#include <random>
+
 namespace mcts {
 
 /**
@@ -10,12 +12,20 @@ class RandomPolicy
 {
   public:
     template <class ProblemType>
-    typename ProblemType::ValueVector performAction(typename ProblemType::StateType& state,
-                                                    const ProblemType& problem) const
+    typename ProblemType::ActionType getAction(const typename ProblemType::StateType& state, const ProblemType& problem)
     {
         assert(problem.getNextStageType(state) == mcts::StageType::DECISION);
-        return problem.performRandomAction(state);
+        auto actions = problem.getAvailableActions(state);
+        auto ac = actions[engine_() % actions.size()];
+        return ac;
     }
+
+    void seed(size_t seed) {
+        engine_.seed(seed);
+    }
+
+  private:
+    std::minstd_rand0 engine_{};
 };
 
 using RandomRolloutPolicy = RolloutPolicy<RandomPolicy>;

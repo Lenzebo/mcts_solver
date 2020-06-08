@@ -7,7 +7,10 @@ namespace g2048 {
 class FixedSequencePolicy
 {
   public:
-    float performAction(g2048::G2048State& state, const g2048::G2048Problem& problem) const;
+    static constexpr std::array<g2048::Actions, 4> ordering = {g2048::Actions::DOWN, g2048::Actions::RIGHT,
+                                                               g2048::Actions::UP, g2048::Actions::LEFT};
+
+    [[nodiscard]] Actions getAction(const g2048::G2048State& state, const g2048::G2048Problem& problem) const;
 
   private:
     [[nodiscard]] g2048::Actions getAction(const mcts::MaxSizeVector<g2048::Actions, 4>& availableActions) const;
@@ -18,10 +21,9 @@ class MCTSPolicy
 {
   public:
     MCTSPolicy(Solver& solver) : solver_(&solver) {}
-    float performAction(g2048::G2048State& state, const g2048::G2048Problem& problem) const
+    [[nodiscard]] Actions getAction(const g2048::G2048State& state, const g2048::G2048Problem& problem) const
     {
-        auto action = solver_->run(problem, state);
-        return problem.performAction(action, state);
+        return solver_->run(problem, state);
     }
 
   private:
@@ -38,7 +40,7 @@ class MCRolloutPolicy : public mcts::RandomRolloutPolicy
         discount_ = discount;
     }
 
-    [[nodiscard]] float rolloutMultiple(const g2048::G2048State state, const g2048::G2048Problem& game) const
+    [[nodiscard]] float rolloutMultiple(const g2048::G2048State state, const g2048::G2048Problem& game)
     {
         float avg = 0;
         for (size_t i = 0; i < iterations_; ++i)
@@ -48,7 +50,7 @@ class MCRolloutPolicy : public mcts::RandomRolloutPolicy
         return avg / iterations_;
     }
 
-    [[nodiscard]] g2048::Actions getBestAction(g2048::G2048State state, const g2048::G2048Problem& game) const
+    [[nodiscard]] g2048::Actions getAction(g2048::G2048State state, const g2048::G2048Problem& game)
     {
         auto actions = game.getAvailableActions(state);
         g2048::Actions bestAction = actions[0];
@@ -71,12 +73,6 @@ class MCRolloutPolicy : public mcts::RandomRolloutPolicy
             }
         }
         return bestAction;
-    }
-
-    float performAction(g2048::G2048State& state, const g2048::G2048Problem& problem) const
-    {
-        auto action = getBestAction(state, problem);
-        return problem.performAction(action, state);
     }
 
   private:

@@ -1,6 +1,6 @@
 #include "mcts/tree.h"
 
-#include "games/TicTacToe/GameTicTacToe.h"
+#include "games/tic_tac_toe/tic_tac_toe.h"
 
 #include <gtest/gtest.h>
 

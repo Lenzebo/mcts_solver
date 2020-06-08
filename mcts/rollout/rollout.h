@@ -10,7 +10,7 @@ class RolloutPolicy
     RolloutPolicy(Policy&& policy) : policy_(std::move(policy)){};
 
     template <class ProblemType>
-    typename ProblemType::ValueVector rollout(typename ProblemType::StateType state, const ProblemType& problem) const
+    typename ProblemType::ValueVector rollout(typename ProblemType::StateType state, const ProblemType& problem)
     {
         typename ProblemType::ValueVector retval{};
         size_t depth = 0;
@@ -21,7 +21,8 @@ class RolloutPolicy
             {
                 case mcts::StageType::DECISION:
                 {
-                    auto reward = policy_.performAction(state, problem);
+                    auto action = policy_.getAction(state, problem);
+                    auto reward = problem.performAction(action, state);
                     retval = retval + currDiscount * reward;
                     break;
                 }

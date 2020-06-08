@@ -62,7 +62,7 @@ struct ProblemDefinition
     static constexpr int maxNumActions = 9;
     static constexpr int maxChanceEvents = 0;
 
-    using ValueVector = std::array<float, 2>;
+    using ValueVector = std::array<float, numPlayers>;
 };
 
 class TicTacToeProblem : public mcts::Problem<TicTacToeProblem, ProblemDefinition>
@@ -168,65 +168,6 @@ class TicTacToeProblem : public mcts::Problem<TicTacToeProblem, ProblemDefinitio
         return retval;
     }
 
-    ValueVector performRandomAction(TicTacToeState& state) const
-    {
-        assert(state.num_remaining_actions > 0);
-
-        // check whether we have to stop a instant win, or if we can win instantly
-        for (uint8_t i = 0; i < 9; ++i)
-        {
-            uint8_t row = i / 3;
-            uint8_t column = i % 3;
-            Actions action = static_cast<Actions>(i);
-            if (state.board[i] == BOARD_EMPTY)
-            {
-                // check rows:
-                if (state.board[row * 3 + (column + 1) % 3] == state.board[row * 3 + (column + 2) % 3] &&
-                    state.board[row * 3 + (column + 2) % 3] != BOARD_EMPTY)
-                {
-                    return performAction(action, state);
-                }
-                else if (state.board[((row + 1) % 3) * 3 + column] == state.board[((row + 2) % 3) * 3 + column] &&
-                         state.board[((row + 1) % 3) * 3 + column] != BOARD_EMPTY)
-                {
-                    return performAction(action, state);
-                }
-                else if (row == column &&
-                         state.board[((row + 1) % 3) * 3 + (column + 1) % 3] ==
-                             state.board[((row + 2) % 3) * 3 + (column + 2) % 3] &&
-                         state.board[((row + 2) % 3) * 3 + (column + 2) % 3] != BOARD_EMPTY)
-                {
-                    return performAction(action, state);
-                }
-                else if (row == 2 - column &&
-                         state.board[((row + 1) % 3) * 3 + (column + 3 - 1) % 3] ==
-                             state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] &&
-                         state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] != BOARD_EMPTY)
-                {
-                    return performAction(action, state);
-                }
-            }
-        }
-
-        uint8_t actidx = rand() % state.num_remaining_actions;
-        for (uint8_t i = 0; i < 9; ++i)
-        {
-            if (state.board[i] == BOARD_EMPTY)
-            {
-                if (actidx == 0)
-                {
-                    return performAction(static_cast<Actions>(i), state);
-                }
-                else
-                {
-                    actidx--;
-                }
-            }
-        }
-        assert(false);
-        return {};
-    }
-
     /**
      * Determines whether the game is over. That can be if no actions are possible or if another desired or undesired
      * state is acchieved
@@ -249,6 +190,69 @@ class TicTacToeProblem : public mcts::Problem<TicTacToeProblem, ProblemDefinitio
                 ((state.board[2] == pp1) && (state.board[5] == pp1) && (state.board[8] == pp1)) ||
                 ((state.board[0] == pp1) && (state.board[4] == pp1) && (state.board[8] == pp1)) ||
                 ((state.board[2] == pp1) && (state.board[4] == pp1) && (state.board[6] == pp1)));
+    }
+};
+
+class TicTacToePolicy
+{
+  public:
+    static Actions getAction(const TicTacToeState& state, const TicTacToeProblem& )
+    {
+        assert(state.num_remaining_actions > 0);
+
+        // check whether we have to stop a instant win, or if we can win instantly
+        for (uint8_t i = 0; i < 9; ++i)
+        {
+            uint8_t row = i / 3;
+            uint8_t column = i % 3;
+            Actions action = static_cast<Actions>(i);
+            if (state.board[i] == BOARD_EMPTY)
+            {
+                // check rows:
+                if (state.board[row * 3 + (column + 1) % 3] == state.board[row * 3 + (column + 2) % 3] &&
+                    state.board[row * 3 + (column + 2) % 3] != BOARD_EMPTY)
+                {
+                    return action;
+                }
+                else if (state.board[((row + 1) % 3) * 3 + column] == state.board[((row + 2) % 3) * 3 + column] &&
+                         state.board[((row + 1) % 3) * 3 + column] != BOARD_EMPTY)
+                {
+                    return action;
+                }
+                else if (row == column &&
+                         state.board[((row + 1) % 3) * 3 + (column + 1) % 3] ==
+                         state.board[((row + 2) % 3) * 3 + (column + 2) % 3] &&
+                         state.board[((row + 2) % 3) * 3 + (column + 2) % 3] != BOARD_EMPTY)
+                {
+                    return action;
+                }
+                else if (row == 2 - column &&
+                         state.board[((row + 1) % 3) * 3 + (column + 3 - 1) % 3] ==
+                         state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] &&
+                         state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] != BOARD_EMPTY)
+                {
+                    return action;
+                }
+            }
+        }
+
+        uint8_t actidx = rand() % state.num_remaining_actions;
+        for (uint8_t i = 0; i < 9; ++i)
+        {
+            if (state.board[i] == BOARD_EMPTY)
+            {
+                if (actidx == 0)
+                {
+                    return static_cast<Actions>(i);
+                }
+                else
+                {
+                    actidx--;
+                }
+            }
+        }
+        assert(false);
+        return {};
     }
 };
 }
