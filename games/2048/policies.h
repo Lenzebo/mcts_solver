@@ -16,6 +16,28 @@ class FixedSequencePolicy
     [[nodiscard]] g2048::Actions getAction(const mcts::MaxSizeVector<g2048::Actions, 4>& availableActions) const;
 };
 
+class BestPositionPolicy
+{
+  public:
+    [[nodiscard]] Actions getAction(const g2048::G2048State& state, const g2048::G2048Problem& problem) const;
+
+  private:
+    struct Point
+    {
+        uint8_t x;
+        uint8_t y;
+    };
+    std::vector<std::vector<Point>> paths;
+
+    [[nodiscard]] float getPositionalScore(const g2048::G2048State& state) const;
+    [[nodiscard]] float getOrderingScore(const g2048::G2048State& state) const;
+
+    [[nodiscard]] float getDifferenceScore(const g2048::G2048State& state) const;
+    [[nodiscard]] float getEmptyFieldsScore(const g2048::G2048State& state) const;
+    [[nodiscard]] float getCornerHighestScore(const g2048::G2048State& state) const;
+    [[nodiscard]] float getOrderingScoreAlongPath(const g2048::G2048State& state, const std::vector<Point>& path) const;
+};
+
 template <class Solver>
 class MCTSPolicy
 {
@@ -23,6 +45,15 @@ class MCTSPolicy
     MCTSPolicy(Solver& solver) : solver_(&solver) {}
     [[nodiscard]] Actions getAction(const g2048::G2048State& state, const g2048::G2048Problem& problem) const
     {
+        // try to find state in existing tree
+        const auto& tree = solver_->tree();
+        auto node = std::find_if(tree.begin(), tree.end(), [&state](const auto& node) { return node.state == state; });
+        if (node != tree.end())
+        {
+            auto action = solver_->runFromExistingTree(node->nodeId);
+            //            solver_->printTopLevelUtilities();
+            return action;
+        }
         return solver_->run(problem, state);
     }
 

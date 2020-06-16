@@ -2,6 +2,7 @@
 #include "mcts/state.h"
 #include "mcts/utils/max_size_vector.h"
 #include "mcts/solver.h"
+#include "mcts/tree_export.h"
 
 #include <gtest/gtest.h>
 #include <optional>
@@ -26,7 +27,7 @@ std::string to_string(SelectCoin c)
     }
 }
 
-std::ostream& operator<< (std::ostream& str, SelectCoin c)
+std::ostream& operator<<(std::ostream& str, SelectCoin c)
 {
     return str << to_string(c);
 }
@@ -181,5 +182,8 @@ TEST(Solver, GT)
         solver.printTopLevelUtilities();
         ASSERT_EQ(action, SelectCoin::HEADS);
         solver.parameter().numIterations *= 10;
+
+        mcts::dot::exportTreeToDot<RiggedToinCossProblem>(solver.tree(), std::cout);
+        mcts::dot::exportTreeToDot<RiggedToinCossProblem>(solver.tree(), "tree.dot");
     }
 }

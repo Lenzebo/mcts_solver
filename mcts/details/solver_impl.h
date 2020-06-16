@@ -25,6 +25,24 @@ Solver<ProblemType, SelectionPolicy, RolloutPolicy>::run(const ProblemType& prob
 }
 
 template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy>
+typename Solver<ProblemType, SelectionPolicy, RolloutPolicy>::ActionType
+Solver<ProblemType, SelectionPolicy, RolloutPolicy>::runFromExistingTree(NodeId newRoot)
+{
+    running_ = true;
+    tree_ = tree_.subTree(newRoot);
+    currentIteration_ = 0;
+
+    while (currentIteration_ < params_.numIterations)
+    {
+        currentIteration_++;
+        iteration();
+    }
+
+    running_ = false;
+    return currentBestAction();
+}
+
+template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy>
 NodeId Solver<ProblemType, SelectionPolicy, RolloutPolicy>::selection()
 {
     const Node* currentNode = &tree_.root();
@@ -67,9 +85,9 @@ template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy
 void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::expansion(const Node& currentNode,
                                                                     Solver::DecisionNode& decNode)
 {
-    assert(!decNode.remainingActions.empty());
+    assert(!decNode.actions.empty());
 
-    for (const auto& action : decNode.remainingActions)
+    for (const auto& action : decNode.actions)
     {
         auto new_state = currentNode.state;
         ValueVector rewards = currentNode.problem.performAction(action, new_state);
@@ -89,12 +107,12 @@ template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy
 void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::expansion(Solver::Node& currentNode,
                                                                     Solver::ChanceNode& chanceNode)
 {
-    assert(!chanceNode.remainingEvents.empty());
+    assert(!chanceNode.events.empty());
 
     if constexpr (ProblemType::hasChanceEvents)
     {
         ValueVector values{};
-        for (const auto& event : chanceNode.remainingEvents)
+        for (const auto& event : chanceNode.events)
         {
             auto new_state = currentNode.state;
             ValueVector rewards = currentNode.problem.performChanceEvent(event.second, new_state);
@@ -136,12 +154,12 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::printTopLevelUtilities
 
     for (size_t ac = 0; ac < actionMap.size(); ac++)
     {
-        if (actionMap[ac].count == 0)
+        if (actionMap[ac].count() == 0)
         {
             continue;
         }
-        std::cout << "Action " << decisionNode.remainingActions[ac] << " has a mean value of " << actionMap[ac].value() << "[" << actionMap[ac].count
-                  << "]\n";
+        std::cout << "Action " << decisionNode.actions[ac] << " has a mean value of " << actionMap[ac].value() << "["
+                  << actionMap[ac].count() << "]\n";
     }
 }
 
@@ -205,7 +223,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::visitBackpropagate(Sol
                                                                              const Edge& edge,
                                                                              const ValueVector& values)
 {
-    if constexpr(ProblemType::numPlayers > 1)
+    if constexpr (ProblemType::numPlayers > 1)
     {
         node.statistics.visitWithValue(edge.index, values[node.playerId]);
     }
@@ -214,6 +232,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::visitBackpropagate(Sol
         node.statistics.visitWithValue(edge.index, values);
     }
 }
+
 template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy>
 void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::visitBackpropagate(Solver::Node& node, const Edge& edge,
                                                                              const ValueVector& values)
@@ -233,7 +252,7 @@ Solver<ProblemType, SelectionPolicy, RolloutPolicy>::currentBestAction() const
     ValueType bestValue = std::numeric_limits<ValueType>::lowest();
     for (size_t ac = 0; ac < actionMap.size(); ac++)
     {
-        if (actionMap[ac].count == 0)
+        if (!actionMap[ac].visited())
         {
             continue;
         }
@@ -243,7 +262,7 @@ Solver<ProblemType, SelectionPolicy, RolloutPolicy>::currentBestAction() const
             bestAction = ac;
         }
     }
-    return decisionNode.remainingActions[bestAction];
+    return decisionNode.actions[bestAction];
 }
 
 }  // namespace mcts

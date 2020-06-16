@@ -1,86 +1,11 @@
-#include <iostream>
-#include "mcts/solver.h"
-#include "mcts/selection/ucb1.h"
-
-/*
- * main.cpp
- *
- *  Created on: 10.09.2012
- *      Author: dlenz
- */
-
-#include <iostream>
-#include <fstream>
-#include <chrono>
-
 #include "tic_tac_toe.h"
 #include "mcts/solver.h"
 
+#include <chrono>
+#include <iostream>
+
 using namespace mcts;
 using namespace ttt;
-
-void testGameStateTicTacToe()
-{
-    TicTacToeState state;
-    TicTacToeProblem game;
-
-    while (!game.isTerminal(state))
-    {
-        auto possible_actions = game.getAvailableActions(state);
-
-        if (state.getCurrentPlayer() == 0)
-        {
-            state.print();
-            std::cout << "\n";
-            int32_t action_id{};
-            size_t i = 0;
-            for (auto ac : possible_actions)
-            {
-                std::cout << i << ": " << game.actionToString(state, ac) << "\n";
-                ++i;
-            }
-            std::cout << "Which Action should be performed?\n";
-            std::cin >> action_id;
-            auto value = game.performAction(possible_actions[action_id], state);
-            std::cout << "Value: " << value[0] << ", " << value[1] << "\n";
-        }
-        else
-        {
-            state.print();
-            std::cout << "\n";
-            //            mcts::BeliefState bs(state.clone());
-            //            auto tree_policy = std::make_shared<UCB1TreePolicy>();
-            //            tree_policy->setExplorationConstant(0.7);
-            //            tree_policy->setMinMax(0, 1);
-            mcts::Solver<TicTacToeProblem, UCB1SelectionPolicy<float>, RolloutPolicy<ttt::TicTacToePolicy> > solver;
-            solver.parameter().numIterations = 100000;
-            auto action = solver.run(game, state);
-            solver.printTopLevelUtilities();
-            auto value = game.performAction(action, state);
-            std::cout << "Value: " << value[0] << ", " << value[1] << "\n";
-        }
-    }
-
-    //
-    //	if (state.didPlayerWin(0))
-    //	{
-    //		std::cout << "Player 1 did Win (" << state.getValueForPlayer(0) << ", "  << state.getValueForPlayer(1) <<
-    //")\n" ;
-    //	}
-    //	else if (state.didPlayerWin(1))
-    //	{
-    //		std::cout << "Player 2 did Win  (" << state.getValueForPlayer(0) << ", "  << state.getValueForPlayer(1) <<
-    //")\n" ;
-    //	}
-    //	else
-    //	{
-    //		std::cout << "Nobody wins... (" << state.getValueForPlayer(0) << ", "  << state.getValueForPlayer(1) <<
-    //")\n"
-    //;
-    //	}
-}
-
-std::ofstream outfile("out.csv");
 
 int testMCTSTicTacToe(bool switch_players, size_t& mctsIterations)
 {
@@ -123,17 +48,11 @@ int testMCTSTicTacToe(bool switch_players, size_t& mctsIterations)
 
 int main(int, char**)
 {
-    //        testGameStateTicTacToe();
-    //
-    //        return 0;
     uint32_t num_iterations = 1000;
 
     uint32_t num_wins_1 = 0;
     uint32_t num_wins_2 = 0;
     uint32_t num_draws = 0;
-
-    //     testGameStateTicTacToe();
-    //     return 0;
 
     size_t mctsIterations = 0;
 

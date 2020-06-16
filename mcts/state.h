@@ -11,7 +11,7 @@ class State
     /**
      * Returns the ID of the current player (i.e. the player that is next to act)
      */
-    virtual uint8_t getCurrentPlayer() const { return current_player; }
+    [[nodiscard]] uint8_t getCurrentPlayer() const { return current_player; }
     void increasePlayer(size_t max_player) { current_player = (current_player + 1) % max_player; }
     void print() { asDerived().writeToStream(std::cout); };
 

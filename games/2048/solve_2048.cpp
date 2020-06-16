@@ -38,14 +38,14 @@ Result playG2048WithPolicy(Policy& policy)
             auto action = policy.getAction(state, game);
             rewards += game.performAction(action, state);
             numMoves++;
-//            state.print();
+                       //state.print();
         }
         else
         {
             rewards += game.performRandomChanceEvent(state);
         }
     }
-//        state.print();
+    //state.print();
     //    std::cout << "Final score is " << rewards << "\n";
 
     auto end = std::chrono::system_clock::now();
@@ -66,7 +66,7 @@ auto getMCTSSolverHeuristicRollout(size_t numIterations = 1000)
 
     mcts::UCB1SelectionPolicy<float> selectionPolicy(UCB1SelectionPolicy<float>::Parameter{0, 500, 5});
     mcts::Solver<g2048::G2048Problem, UCB1SelectionPolicy<float>, G2048RolloutPolicy> solver(std::move(selectionPolicy),
-                                                                                             {});
+                                                                                             G2048RolloutPolicy{100});
     solver.parameter().numIterations = numIterations;
 
     return solver;
@@ -118,7 +118,7 @@ std::vector<Result> evaluatePolicy(Policy policy, size_t count)
     for (size_t i = 0; i < count; ++i)
     {
         results.push_back(playG2048WithPolicy(policy));
-//        std::cout << "##";
+        //        std::cout << "##";
         std::cout.flush();
     }
     std::cout << "]\n";
@@ -128,10 +128,16 @@ std::vector<Result> evaluatePolicy(Policy policy, size_t count)
 
 int main(int, char**)
 {
-    size_t count = 10;
+    size_t count = 1000;
+
     {
         std::cout << "#### RandomPolicy: " << std::endl;
         evaluatePolicy(RandomPolicy{}, count);
+    }
+
+    {
+        std::cout << "#### BestPositionPolicy: " << std::endl;
+        evaluatePolicy(g2048::BestPositionPolicy{}, count);
     }
 
     {
@@ -139,10 +145,14 @@ int main(int, char**)
         evaluatePolicy(g2048::FixedSequencePolicy{}, count);
     }
 
+
     {
         std::cout << "#### MCRolloutPolicy (1 / 10 / 0.95): " << std::endl;
-        evaluatePolicy(g2048::MCRolloutPolicy{1, 100, 0.95f}, count);
+        evaluatePolicy(g2048::MCRolloutPolicy{10, 10, 0.95f}, count);
     }
+
+    return 0;
+
 
     {
         std::cout << "#### MCRolloutPolicy: " << std::endl;

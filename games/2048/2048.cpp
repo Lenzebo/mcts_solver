@@ -12,6 +12,14 @@ bool G2048State::empty(size_t x, size_t y) const
     auto value = 1 << board(x, y);
     return value == 1;
 }
+bool G2048State::operator==(const G2048State& rhs) const
+{
+    return board_ == rhs.board_ && nextIsChance == rhs.nextIsChance;
+}
+bool G2048State::operator!=(const G2048State& rhs) const
+{
+    return !(rhs == *this);
+}
 
 std::string G2048Problem::actionToString(const StateType& state, const ActionType& action) const  // NOLINT
 {

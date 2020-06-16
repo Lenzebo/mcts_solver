@@ -17,10 +17,23 @@ class NodeStatistic
     /// this struct hold all statistic for one action
     struct Statistic
     {
-        ValueType total_value = 0.0;
-        uint32_t count = 0;
-        ValueType max_value = std::numeric_limits<ValueType>::lowest();
-        ValueType value() const { return total_value / double(std::max(1U, count)); }
+        void add(const ValueType& value)
+        {
+            totalValue_ += value;
+            count_++;
+            maxValue_ = std::max(maxValue_, value);
+        }
+
+        [[nodiscard]] ValueType value() const noexcept { return totalValue_ / double(std::max(1U, count_)); }
+        [[nodiscard]] uint32_t count() const noexcept { return count_; }
+        [[nodiscard]] ValueType max() const noexcept { return maxValue_; }
+
+        [[nodiscard]] bool visited() const noexcept { return count_ != 0; }
+
+      private:
+        ValueType totalValue_ = 0.0;
+        uint32_t count_ = 0;
+        ValueType maxValue_ = std::numeric_limits<ValueType>::lowest();
     };
 
     NodeStatistic() { statistics.fill(Statistic()); };
@@ -34,14 +47,9 @@ class NodeStatistic
         statistics[idx].max_value = std::numeric_limits<ValueType>::lowest();
     }
 
-    /// this function allows to add a penalty to an action
-    void addPenalty(size_t idx, const ValueType& penalty) { statistics[idx].total_value += penalty; }
-
     void visitWithValue(size_t idx, const ValueType& val)
     {
-        statistics[idx].total_value += val;
-        statistics[idx].count++;
-        statistics[idx].max_value = std::max(statistics[idx].max_value, val);
+        statistics[idx].add(val);
         visit_count++;
 
         if (visit_count == 1)

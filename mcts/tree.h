@@ -13,6 +13,7 @@ using EdgeId = NamedType<size_t, struct EdgeTag>;
 
 constexpr EdgeId ROOT_EDGE{std::numeric_limits<size_t>::max()};
 constexpr NodeId INVALID_NODE{std::numeric_limits<size_t>::max()};
+constexpr NodeId ROOT_NODE{0};
 
 template <class ProblemType>
 struct Tree
@@ -22,22 +23,23 @@ struct Tree
     using StateType = typename ProblemType::StateType;
     using ActionType = typename ProblemType::ActionType;
     using ChanceEventType = typename ProblemType::ChanceEventType;
+    using ChanceEventWithProbability = std::pair<float, ChanceEventType>;
 
     struct Node
     {
         /**
-     * @brief A player in the game has to make a decision out of a set of possible actions that he can perform based on
-     * the current state
-     */
+         * @brief A player in the game has to make a decision out of a set of possible actions that he can perform based
+         * on the current state
+         */
         struct DecisionNode
         {
             explicit DecisionNode(const ProblemType& p, const StateType& s) noexcept
             {
-                remainingActions = p.getAvailableActions(s);
+                actions = p.getAvailableActions(s);
                 playerId = s.getCurrentPlayer();
             }
             NodeStatistic<ValueType, ProblemType::maxNumActions> statistics{};
-            MaxSizeVector<ActionType, ProblemType::maxNumActions> remainingActions{};
+            MaxSizeVector<ActionType, ProblemType::maxNumActions> actions{};
             uint8_t playerId{};
         };
 
@@ -51,15 +53,15 @@ struct Tree
             {
                 if constexpr (ProblemType::hasChanceEvents)
                 {
-                    remainingEvents = p.getAvailableChanceEvents(s);
+                    events = p.getAvailableChanceEvents(s);
                 }
             }
-            MaxSizeVector<std::pair<float, ChanceEventType>, ProblemType::maxChanceEvents> remainingEvents;
+            MaxSizeVector<ChanceEventWithProbability, ProblemType::maxChanceEvents> events;
         };
 
         using PayloadType = std::variant<DecisionNode, ChanceNode>;
 
-        static PayloadType payloadFromState(const ProblemType& p, const StateType& s)
+        [[nodiscard]] static PayloadType payloadFromState(const ProblemType& p, const StateType& s)
         {
             if constexpr (ProblemType::hasChanceEvents)
             {
@@ -84,8 +86,11 @@ struct Tree
         {
         }
 
-        [[nodiscard]] bool isTerminal() const { return problem.isTerminal(state); }
-        [[nodiscard]] bool isLeaf() const { return outgoingEdges.empty(); }
+        [[nodiscard]] constexpr bool isTerminal() const { return problem.isTerminal(state); }
+        [[nodiscard]] constexpr bool isLeaf() const { return outgoingEdges.empty(); }
+
+        [[nodiscard]] constexpr bool isChance() const { return std::holds_alternative<ChanceNode>(payload); }
+        [[nodiscard]] constexpr bool isDecision() const { return std::holds_alternative<DecisionNode>(payload); }
 
         template <class Visitor>
         inline constexpr decltype(auto) visit(Visitor&& visitor)
@@ -145,9 +150,29 @@ struct Tree
         clear();
         root.outgoingEdges = {};
         root.incomingEdge = ROOT_EDGE;
-        root.nodeId = NodeId{0};
+        root.nodeId = ROOT_NODE;
         nodes_.push_back(root);
     }
+
+    [[nodiscard]] bool contains(NodeId node) const { return node.get() < nodes_.size(); }
+
+    Tree subTree(NodeId parent) const
+    {
+        if (!contains(parent))
+        {
+            return {};
+        }
+
+        Tree tree{};
+        tree.reserve(nodes_.capacity());
+        tree.setRoot((*this)[parent]);
+        insertExpandSubTree(tree, parent, ROOT_NODE);
+        tree.root().nodeValue = {};
+        return tree;
+    }
+
+    auto begin() const { return nodes_.begin(); }
+    auto end() const { return nodes_.end(); }
 
     [[nodiscard]] size_t capacity() const { return nodes_.capacity(); }
     [[nodiscard]] size_t nodeCount() const { return nodes_.size(); }
@@ -162,7 +187,6 @@ struct Tree
 
     std::pair<NodeId, EdgeId> insert(NodeId parent, Node newNode)
     {
-        // TODO concurrency
         assert(nodes_.capacity() > nodes_.size());
         assert(edges_.capacity() > edges_.size());
 
@@ -171,6 +195,7 @@ struct Tree
         EdgeId newEdgeId{edges_.size()};
         newNode.nodeId = newId;
         newNode.incomingEdge = newEdgeId;
+        newNode.outgoingEdges = {};
         nodes_.push_back(std::move(newNode));
 
         auto& parentNode = (*this)[parent];
@@ -184,7 +209,21 @@ struct Tree
         return {newId, newEdgeId};
     }
 
+    const std::vector<Node>& nodes() const { return nodes_; }
+    const std::vector<Edge>& edges() const { return edges_; }
+
   private:
+    void insertExpandSubTree(Tree& tree, NodeId parent, NodeId newParent) const
+    {
+        for (const EdgeId edge : (*this)[parent].outgoingEdges)
+        {
+            auto childNodeId = (*this)[edge].child;
+            auto [nodeId, edgeId] = tree.insert(newParent, (*this)[childNodeId]);
+            tree[nodeId].nodeValue -= tree.root().nodeValue;
+            insertExpandSubTree(tree, childNodeId, nodeId);
+        }
+    }
+
     std::vector<Node> nodes_;
     std::vector<Edge> edges_;
 };

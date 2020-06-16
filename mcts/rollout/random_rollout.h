@@ -20,12 +20,10 @@ class RandomPolicy
         return ac;
     }
 
-    void seed(size_t seed) {
-        engine_.seed(seed);
-    }
+    void seed(size_t seed) { engine_.seed(seed); }
 
   private:
-    std::minstd_rand0 engine_{};
+    std::minstd_rand0 engine_{std::random_device{}()};
 };
 
 using RandomRolloutPolicy = RolloutPolicy<RandomPolicy>;

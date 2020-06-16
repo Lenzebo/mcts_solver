@@ -25,41 +25,29 @@ class Problem : public ProblemDefinition,  // To make all typedefs available
                   "Number of actions must be > 1 so that we can plan with this problem ");
     static_assert(std::is_arithmetic_v<typename ProblemDefinition::ValueType>, "Valuetype must be arithmetic");
 
-    [[nodiscard]] ActionId actionToId(const typename ProblemDefinition::StateType& state,
+    [[nodiscard]] ActionId actionToId([[maybe_unused]] const typename ProblemDefinition::StateType& state,
                                       const typename ProblemDefinition::ActionType& action) const
     {
-        (void)state;
         return ActionId{size_t(action)};
     }
 
-    [[nodiscard]] typename ProblemDefinition::ActionType idToAction(const typename ProblemDefinition::StateType& state,
-                                                                    const ActionId& action) const
+    [[nodiscard]] typename ProblemDefinition::ActionType idToAction(
+        [[maybe_unused]] const typename ProblemDefinition::StateType& state, const ActionId& action) const
     {
-        (void)state;
         return static_cast<typename ProblemDefinition::ActionType>(action.get());
     }
 
-    [[nodiscard]] std::string actionToString(const typename ProblemDefinition::StateType& state,
+    [[nodiscard]] std::string actionToString([[maybe_unused]] const typename ProblemDefinition::StateType& state,
                                              const typename ProblemDefinition::ActionType& action) const
     {
-        (void)state;
         using std::to_string;
         return to_string(action);
     }
-
-    /**
-     * Returns the ID of the player that acts before 'other_player_id'
-     */
-    [[nodiscard]] static uint8_t getPlayerBefore(uint8_t other_player_id)
+    [[nodiscard]] std::string eventToString([[maybe_unused]] const typename ProblemDefinition::StateType& state,
+                                            const typename ProblemDefinition::ChanceEventType& event) const
     {
-        if (other_player_id == 0)
-        {
-            return ProblemType::numPlayers - 1u;
-        }
-        else
-        {
-            return other_player_id - 1;
-        }
+        using std::to_string;
+        return to_string(event);
     }
 
   private:

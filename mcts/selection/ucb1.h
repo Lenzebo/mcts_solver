@@ -8,6 +8,11 @@
 #include <random>
 
 namespace mcts {
+
+/**
+ * @brief Find best child based on UCT
+ * @tparam ValueType
+ */
 template <typename ValueType>
 class UCB1SelectionPolicy : public SelectionPolicy<UCB1SelectionPolicy<ValueType>>
 {
@@ -22,40 +27,41 @@ class UCB1SelectionPolicy : public SelectionPolicy<UCB1SelectionPolicy<ValueType
     };
 
     UCB1SelectionPolicy() = default;
+
+    // NOLINTNEXTLINE
     UCB1SelectionPolicy(const Parameter& params) : params_(params) {}
 
     template <typename Node>
     size_t selectDecisionNodeSuccessor(const Node&, const typename Node::DecisionNode& decision)
-    {  // find best child based on UCT
-        float best_uct_value = std::numeric_limits<float>::lowest();
+    {
+        float bestUCTValue = std::numeric_limits<float>::lowest();
 
         const auto& map = decision.statistics;
-        size_t best_child = std::numeric_limits<size_t>::max();
+        size_t bestChild = std::numeric_limits<size_t>::max();
         size_t index = 0;
+
+        const float currExplorationConstant = (params_.max - params_.min) * params_.explorationConstant;
+        const uint32_t nodeVisits = map.getTotalVisits();
+        const auto logVisits = logf(nodeVisits);
+
         for (const auto& m : map)
         {
-            if (m.count == 0)
+            index++;
+
+            if (!m.visited())
             {
-                index++;
                 continue;
             }
-            const uint32_t child_visits = std::max(1U, m.count);
-            const float current_value = m.value();
 
-            const float scaledValue = (current_value - params_.min) / (params_.max - params_.min);
-            const uint32_t node_visits = std::max(1U, map.getTotalVisits());
+            float currentUTC = m.value() + currExplorationConstant * sqrt(2 * logVisits / float(m.count()));
 
-            float current_UTC =
-                scaledValue + params_.explorationConstant * sqrt(2 * logf(node_visits) / float(child_visits));
-
-            if (current_UTC > best_uct_value)
+            if (currentUTC > bestUCTValue)
             {
-                best_uct_value = current_UTC;
-                best_child = index;
+                bestUCTValue = currentUTC;
+                bestChild = index - 1;
             }
-            index++;
         }
-        return best_child;
+        return bestChild;
     }
 
     Parameter params_{};

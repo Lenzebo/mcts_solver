@@ -20,7 +20,6 @@ template <typename ProblemType, typename SelectionPolicy = UCB1SelectionPolicy<t
 class Solver
 {
   public:
-    using IterationCount = size_t;
     using ValueType = typename ProblemType::ValueType;
     using ValueVector = typename ProblemType::ValueVector;
     using StateType = typename ProblemType::StateType;
@@ -46,6 +45,7 @@ class Solver
     }
 
     ActionType run(const ProblemType& problem, const StateType& root);
+    ActionType runFromExistingTree(NodeId newRoot);
 
     Parameter& parameter() { return params_; }
     const Parameter& parameter() const { return params_; }
@@ -54,6 +54,7 @@ class Solver
     size_t currentIteration() const { return currentIteration_; }
 
     void printTopLevelUtilities() const;
+    const TreeType tree() const { return tree_; }
 
   private:
     void init(const ProblemType& problem, const StateType& root);

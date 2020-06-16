@@ -57,8 +57,7 @@ size_t Board::numEmpty() const
     x += x >> 4U;  // this can overflow to the next nibble if there were 16 empty positions
     return x & 0xfU;
 }
-
-size_t Board::biggestTile() const
+uint8_t Board::biggestExp() const
 {
     uint8_t max = 0;
     for (uint8_t y = 0; y < BOARD_DIMS; ++y)
@@ -68,7 +67,12 @@ size_t Board::biggestTile() const
             max = std::max(max, at(x, y));
         }
     }
-    return 1U << max;
+    return max;
+}
+size_t Board::biggestTile() const
+{
+
+    return 1U << biggestExp();
 }
 
 Board::Board(std::array<std::array<uint8_t, BOARD_DIMS>, BOARD_DIMS> cells)
@@ -118,5 +122,6 @@ std::ostream& operator<<(std::ostream& os, const Board& board)
     }
     return os;
 }
+
 
 }  // namespace g2048

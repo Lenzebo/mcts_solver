@@ -6,7 +6,7 @@
 #include <random>
 
 namespace mcts {
-template<class T>
+template <class T>
 class SelectionPolicy
 {
   public:
@@ -21,13 +21,10 @@ class SelectionPolicy
     template <typename Node>
     size_t operator()(const Node&, const typename Node::ChanceNode& chance)
     {
-        static thread_local std::minstd_rand0 engine{};
-        static thread_local std::uniform_real_distribution<float> dist{0, 1.0f};
-
-        float randVal = dist(engine);
+        float randVal = dist_(engine_);
 
         size_t counter = 0;
-        for (const auto& ev : chance.remainingEvents)
+        for (const auto& ev : chance.events)
         {
             if (randVal < ev.first)
             {
@@ -36,7 +33,7 @@ class SelectionPolicy
             randVal -= ev.first;
             counter++;
         }
-        return chance.remainingEvents.size() - 1;
+        return chance.events.size() - 1;
     }
 
     template <typename Node>
@@ -45,8 +42,10 @@ class SelectionPolicy
         return static_cast<T*>(this)->selectDecisionNodeSuccessor(node, decision);
     }
 
+    void seed(size_t seed) { engine_.seed(seed); }
+
   private:
-    std::minstd_rand0 engine{};
-    std::uniform_real_distribution<float> dist{0, 1.0f};
+    std::minstd_rand0 engine_{std::random_device{}()};
+    std::uniform_real_distribution<float> dist_{0, 1.0f};
 };
 }

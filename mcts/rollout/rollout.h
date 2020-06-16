@@ -11,6 +11,7 @@ class RolloutPolicy
 {
   public:
     RolloutPolicy() = default;
+    explicit RolloutPolicy(size_t depth, float discount = 1.0f) : rolloutDepth_(depth), discount_(discount){};
     RolloutPolicy(Policy&& policy) : policy_(std::move(policy)){};
 
     template <class ProblemType>

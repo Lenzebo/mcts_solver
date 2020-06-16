@@ -10,6 +10,8 @@ class NeedsChanceEvents
     using ChanceEventsVector =
         mcts::MaxSizeVector<std::pair<float, typename ProblemDefinition::ChanceEventType>, NumChance>;
 
+
+  private:
     /// Functions that should be implemented by the child classes. If you get a linker error pointing to here, use this
     /// signature and implement in the child class
     [[nodiscard]] typename ProblemDefinition::ValueVector performChanceEvent(
@@ -32,6 +34,8 @@ class NeedActionFunction
 {
   public:
     using ActionsVector = mcts::MaxSizeVector<typename ProblemDefinition::ActionType, ProblemDefinition::maxNumActions>;
+
+  private:
     /// Functions that should be implemented by the child classes. If you get a linker error pointing to here, use this
     /// signature and implement in the child class
     [[nodiscard]] ActionsVector getAvailableActions(const typename ProblemDefinition::StateType& state) const;

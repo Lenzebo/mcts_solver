@@ -53,6 +53,9 @@ class G2048State : public mcts::State<G2048State>
     [[nodiscard]] bool isChanceNext() const { return nextIsChance; }
     void setNextChance(bool isChance) { nextIsChance = isChance; }
 
+    bool operator==(const G2048State& rhs) const;
+    bool operator!=(const G2048State& rhs) const;
+
   private:
     Board board_{};
     bool nextIsChance = true;

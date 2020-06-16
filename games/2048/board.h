@@ -21,6 +21,7 @@ struct Board
 
     size_t numEmpty() const;
     size_t biggestTile() const;
+    uint8_t biggestExp() const;
 
     uint64_t raw() const { return values_; }
     friend std::ostream& operator<<(std::ostream& os, const Board& board);

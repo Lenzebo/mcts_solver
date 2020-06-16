@@ -1,2 +1,3 @@
 
-add_executable(testTicTacToe test_tic_tac_toe.cpp)
+add_executable(solve_tic_tac_toe solve_tic_tac_toe.cpp)
+add_executable(play_tic_tac_toe play_tic_tac_toe.cpp)
