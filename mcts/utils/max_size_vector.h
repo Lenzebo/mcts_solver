@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <algorithm>
 
 namespace mcts {
 
@@ -9,6 +10,7 @@ class MaxSizeVector
   public:
     MaxSizeVector() = default;
     MaxSizeVector(const MaxSizeVector& other) : data_(other.data_), count_(other.count_) {}
+    MaxSizeVector(const std::vector<T>& other) { insert(begin(), other.begin(), other.end()); }
     MaxSizeVector(MaxSizeVector&& other) noexcept : data_(std::move(other.data_)), count_(std::move(other.count_)) {}
 
     MaxSizeVector& operator=(const MaxSizeVector& other)
@@ -34,6 +36,24 @@ class MaxSizeVector
     {
         assert(newSize < MAX_SIZE);
         (void)newSize;
+    }
+
+    void clear() { count_ = 0; }
+
+    template <class InputIterator>
+    T* insert(T* position, InputIterator first, InputIterator last)
+    {
+        auto dist = std::distance(first, last);
+        assert(size() + dist <= capacity());
+
+        // first move all the elements to the end...
+        std::copy(position, end(), position + dist);
+
+        // now copy the input range into the empty space
+        std::copy(first, last, position);
+
+        count_ += std::distance(first, last);
+        return position;
     }
 
     [[nodiscard]] bool empty() const { return count_ == 0; }
@@ -65,6 +85,9 @@ class MaxSizeVector
         assert(idx < count_);
         return data_[idx];
     }
+
+    const T& back() const { return (*this)[count_ - 1]; }
+    const T& front() const { return (*this)[0]; }
 
     void push_back(T&& elem)
     {

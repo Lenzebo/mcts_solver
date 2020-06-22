@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mcts/types.h"
+
 namespace mcts {
 
 /**

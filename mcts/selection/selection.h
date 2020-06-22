@@ -21,6 +21,8 @@ class SelectionPolicy
     template <typename Node>
     size_t operator()(const Node&, const typename Node::ChanceNode& chance)
     {
+        assert(!chance.events.empty());
+
         float randVal = dist_(engine_);
 
         size_t counter = 0;

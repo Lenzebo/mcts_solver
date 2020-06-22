@@ -3,6 +3,7 @@
 #include "../solver.h"
 
 #include <iomanip>
+#include <iostream>
 
 namespace mcts {
 
@@ -196,21 +197,20 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::backpropagate(const No
     auto currentNodeId = expandedNode;
     while (true)
     {
-        const auto& currentNode = tree_[currentNodeId];
-        if (currentNode.incomingEdge == ROOT_EDGE)
+        if (currentNodeId == ROOT_NODE)
         {
             break;
         }
-        else  // traverse the tree upward, as its a tree only one parent can be present
-        {
-            const auto& edge = tree_[currentNode.incomingEdge];
-            const auto parentNodeId = edge.parent;
-            auto& parentNode = tree_[parentNodeId];
-            visitBackpropagate(parentNode, edge, values);
-            currentNodeId = parentNodeId;
-        }
+
+        // traverse the tree upward, as its a tree only one parent can be present
+        const auto& currentNode = tree_[currentNodeId];
+        const auto& edge = tree_[currentNode.incomingEdge];
+        const auto parentNodeId = edge.parent;
+        auto& parentNode = tree_[parentNodeId];
+        visitBackpropagate(parentNode, edge, values);
+        currentNodeId = parentNodeId;
     }
-}
+}  // namespace mcts
 
 template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy>
 void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::visitBackpropagate(Solver::ChanceNode&, const Edge&,
@@ -229,6 +229,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::visitBackpropagate(Sol
     }
     else
     {
+        assert(!std::isnan(values));
         node.statistics.visitWithValue(edge.index, values);
     }
 }

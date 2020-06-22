@@ -55,12 +55,15 @@ class UCB1SelectionPolicy : public SelectionPolicy<UCB1SelectionPolicy<ValueType
 
             float currentUTC = m.value() + currExplorationConstant * sqrt(2 * logVisits / float(m.count()));
 
+            assert(!std::isnan(currentUTC));
+
             if (currentUTC > bestUCTValue)
             {
                 bestUCTValue = currentUTC;
                 bestChild = index - 1;
             }
         }
+        assert(bestChild != std::numeric_limits<size_t>::max());
         return bestChild;
     }
 
