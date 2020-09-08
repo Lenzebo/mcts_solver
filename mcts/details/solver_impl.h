@@ -96,7 +96,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::expansion(const Node& 
         Node newNode(currentNode.problem, new_state);
         newNode.nodeValue = currentNode.nodeValue + rewards;
         auto [nodeId, edgeId] = tree_.insert(currentNode.nodeId, std::move(newNode));
-
+        (void)edgeId;
         // Rollout to gain an estimate of the value of that node
         auto values = rollout(nodeId);
         // Backpropagate
@@ -121,7 +121,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::expansion(Solver::Node
             Node newNode(currentNode.problem, new_state);
             newNode.nodeValue = currentNode.nodeValue + rewards;
             auto [nodeId, edgeId] = tree_.insert(currentNode.nodeId, std::move(newNode));
-
+            (void)edgeId;
             // Rollout to gain an estimate of the value of that node
             values = values + event.first * rollout(nodeId);
         }
