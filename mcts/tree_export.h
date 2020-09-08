@@ -72,10 +72,10 @@ void exportTreeToDot(const Tree<ProblemType>& tree, std::ostream& stream)
 }
 
 template <typename ProblemType>
-void exportTreeToDot(const Tree<ProblemType>& tree, const std::string_view filename)
+void exportTreeToDot(const Tree<ProblemType>& tree, const std::string filename)
 {
     std::ofstream file(filename);
     exportTreeToDot(tree, file);
 }
 
-}
+}  // namespace mcts::dot
