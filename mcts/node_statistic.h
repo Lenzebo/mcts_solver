@@ -37,8 +37,8 @@ template <typename ValueType, int MAX_NUM_STATISTICS>
 class NodeStatistic
 {
   public:
-    using Statistic = Statistic<ValueType>;
-    NodeStatistic() { statistics.fill(Statistic()); };
+    using Stat = Statistic<ValueType>;
+    NodeStatistic() { statistics.fill(Stat()); };
 
     [[nodiscard]] uint32_t getTotalVisits() const { return visit_count; }
 
@@ -65,7 +65,7 @@ class NodeStatistic
         }
     }
 
-    const Statistic& stat(size_t idx) const { return statistics[idx]; }
+    const Stat& stat(size_t idx) const { return statistics[idx]; }
 
     // Returns the maximum and minimum of all the visits
     void getMinMaxValue(ValueType& max, ValueType& min) const
@@ -74,13 +74,13 @@ class NodeStatistic
         min = _min;
     }
 
-    const std::array<Statistic, MAX_NUM_STATISTICS>& getStatistics() const { return statistics; }
+    const std::array<Stat, MAX_NUM_STATISTICS>& getStatistics() const { return statistics; }
 
-    const Statistic* begin() const { return statistics.begin(); }
-    const Statistic* end() const { return statistics.end(); }
+    const Stat* begin() const { return statistics.begin(); }
+    const Stat* end() const { return statistics.end(); }
 
   private:
-    std::array<Statistic, MAX_NUM_STATISTICS> statistics;
+    std::array<Stat, MAX_NUM_STATISTICS> statistics;
     uint32_t visit_count = 0;
     ValueType _min = 0.0;
     ValueType _max = 1.0;
