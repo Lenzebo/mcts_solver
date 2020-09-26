@@ -54,6 +54,8 @@ class Solver
     size_t currentIteration() const { return currentIteration_; }
 
     void printTopLevelUtilities() const;
+    std::vector<std::pair<ActionType, Statistic<ValueType>>> getTopLevelUtilities() const;
+
     const TreeType tree() const { return tree_; }
 
   private:

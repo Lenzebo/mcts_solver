@@ -146,8 +146,11 @@ Solver<ProblemType, SelectionPolicy, RolloutPolicy>::rollout(NodeId nodeId)
 }
 
 template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy>
-void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::printTopLevelUtilities() const
+std::vector<std::pair<typename ProblemType::ActionType, Statistic<typename ProblemType::ValueType> > >
+Solver<ProblemType, SelectionPolicy, RolloutPolicy>::getTopLevelUtilities() const
 {
+    std::vector<std::pair<typename ProblemType::ActionType, Statistic<typename ProblemType::ValueType> > > retval{};
+
     const auto& rootNode = tree_.root();
 
     const auto& decisionNode = std::get<0>(rootNode.payload);
@@ -155,12 +158,23 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::printTopLevelUtilities
 
     for (size_t ac = 0; ac < actionMap.size(); ac++)
     {
-        if (actionMap[ac].count() == 0)
+        if (actionMap[ac].count() > 0)
         {
-            continue;
+            retval.emplace_back(decisionNode.actions[ac], actionMap[ac]);
         }
-        std::cout << "Action " << decisionNode.actions[ac] << " has a mean value of " << actionMap[ac].value() << "["
-                  << actionMap[ac].count() << "]\n";
+    }
+
+    return retval;
+}
+
+template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy>
+void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::printTopLevelUtilities() const
+{
+    auto topLevelUtilities = getTopLevelUtilities();
+
+    for (auto& [action, stat] : topLevelUtilities)
+    {
+        std::cout << "Action " << action << " has a mean value of " << stat.value() << "[" << stat.count() << "]\n";
     }
 }
 

@@ -5,6 +5,29 @@
 
 namespace mcts {
 
+/// this struct hold all statistic for one action
+template <typename ValueType>
+struct Statistic
+{
+    void add(const ValueType& value)
+    {
+        totalValue_ += value;
+        count_++;
+        maxValue_ = std::max(maxValue_, value);
+    }
+
+    [[nodiscard]] ValueType value() const noexcept { return totalValue_ / double(std::max(1U, count_)); }
+    [[nodiscard]] uint32_t count() const noexcept { return count_; }
+    [[nodiscard]] ValueType max() const noexcept { return maxValue_; }
+
+    [[nodiscard]] bool visited() const noexcept { return count_ != 0; }
+
+  private:
+    ValueType totalValue_ = 0.0;
+    uint32_t count_ = 0;
+    ValueType maxValue_ = std::numeric_limits<ValueType>::lowest();
+};
+
 /**
  * This class holds all statistics for each discrete choices.
  * This could be either actions, events, edges, etc. Something with integer IDs
@@ -14,28 +37,7 @@ template <typename ValueType, int MAX_NUM_STATISTICS>
 class NodeStatistic
 {
   public:
-    /// this struct hold all statistic for one action
-    struct Statistic
-    {
-        void add(const ValueType& value)
-        {
-            totalValue_ += value;
-            count_++;
-            maxValue_ = std::max(maxValue_, value);
-        }
-
-        [[nodiscard]] ValueType value() const noexcept { return totalValue_ / double(std::max(1U, count_)); }
-        [[nodiscard]] uint32_t count() const noexcept { return count_; }
-        [[nodiscard]] ValueType max() const noexcept { return maxValue_; }
-
-        [[nodiscard]] bool visited() const noexcept { return count_ != 0; }
-
-      private:
-        ValueType totalValue_ = 0.0;
-        uint32_t count_ = 0;
-        ValueType maxValue_ = std::numeric_limits<ValueType>::lowest();
-    };
-
+    using Statistic = Statistic<ValueType>;
     NodeStatistic() { statistics.fill(Statistic()); };
 
     [[nodiscard]] uint32_t getTotalVisits() const { return visit_count; }
