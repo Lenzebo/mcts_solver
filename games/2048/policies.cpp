@@ -5,7 +5,7 @@
 namespace g2048 {
 g2048::Actions FixedSequencePolicy::getAction(const zbo::MaxSizeVector<g2048::Actions, 4>& availableActions) const
 {
-    for (const auto action : ordering)
+    for (const auto action : ORDERING)
     {
         if (std::find(availableActions.begin(), availableActions.end(), action) != availableActions.end())
         {

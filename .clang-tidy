@@ -1,5 +1,5 @@
 Checks:           '-*,modernize-*,cppcoreguidelines-*,-cppcoreguidelines-owning-memory,-cppcoreguidelines-special-member-functions,readability-identifier-naming,-modernize-use-trailing-return-type,-cppcoreguidelines-pro-bounds-array-to-pointer-decay'
-HeaderFilterRegex: 'mcts/.*'
+HeaderFilterRegex: '.*'
 WarningsAsErrors: '*'
 CheckOptions:
   - key:             readability-identifier-naming.ClassCase

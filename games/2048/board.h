@@ -41,11 +41,11 @@ struct Board
 
     bool operator==(const Board& other) const { return values_ == other.values_; }
 
-    size_t numEmpty() const;
-    size_t biggestTile() const;
-    uint8_t biggestExp() const;
+    [[nodiscard]] size_t numEmpty() const;
+    [[nodiscard]] size_t biggestTile() const;
+    [[nodiscard]] uint8_t biggestExp() const;
 
-    uint64_t raw() const { return values_; }
+    [[nodiscard]] uint64_t raw() const { return values_; }
     friend std::ostream& operator<<(std::ostream& os, const Board& board);
 
   private:
