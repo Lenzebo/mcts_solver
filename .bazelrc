@@ -1,0 +1,12 @@
+build --config=opt
+# we start to build for c++20 to make use of e.g. <span>
+build --cxxopt -std=c++2a
+
+build:opt -c opt
+build:opt --copt -g
+build:opt --copt -O3
+build:opt --copt -march=native
+build:opt --strip=never
+
+import ./zbo/bazel/sanitizer.bazelrc
+import ./zbo/bazel/macprofiler.bazelrc

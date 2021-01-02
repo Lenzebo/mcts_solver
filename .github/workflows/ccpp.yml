@@ -42,5 +42,21 @@ jobs:
         working-directory: ${{runner.workspace}}/build
         shell: bash
         run: ctest -C $BUILD_TYPE
-
+  build-bazel:
+    runs-on: ubuntu-latest
+    container:
+      image: lenzebo/zbo:v2
+    needs: [lint]
+    strategy:
+      matrix:
+        flags: ["", "--config=asan --config=ubsan --config=lsan"]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Run unit tests
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        run: bazel test ${{ matrix.flags }} //...
 
