@@ -23,6 +23,7 @@
 #pragma once
 #include "rollout.h"
 
+#include <cassert>
 #include <random>
 
 namespace mcts {

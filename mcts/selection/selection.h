@@ -23,6 +23,7 @@
 #pragma once
 #include "../solver.h"
 
+#include <cassert>
 #include <cmath>
 #include <random>
 #include <variant>
