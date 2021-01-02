@@ -2,8 +2,14 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "2048",
-    srcs = ["2048.cpp", "board.cpp"],
-    hdrs = ["2048.h", "board.h"],
+    srcs = [
+        "2048.cpp",
+        "board.cpp",
+    ],
+    hdrs = [
+        "2048.h",
+        "board.h",
+    ],
     deps = [
         "//mcts",
     ],
@@ -17,7 +23,11 @@ cc_binary(
 
 cc_binary(
     name = "solve",
-    srcs = ["solve_2048.cpp", "policies.h", "policies.cpp"],
+    srcs = [
+        "policies.cpp",
+        "policies.h",
+        "solve_2048.cpp",
+    ],
     deps = [
         ":2048",
     ],
@@ -29,5 +39,5 @@ cc_test(
     deps = [
         ":2048",
         "@com_google_googletest//:gtest_main",
-    ]
+    ],
 )
