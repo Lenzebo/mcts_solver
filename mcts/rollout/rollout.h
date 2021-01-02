@@ -48,15 +48,13 @@ class RolloutPolicy
         {
             switch (problem.getNextStageType(state))
             {
-                case mcts::StageType::DECISION:
-                {
+                case mcts::StageType::DECISION: {
                     auto action = policy_.getAction(state, problem);
                     auto reward = problem.performAction(action, state);
                     retval = retval + currDiscount * reward;
                     break;
                 }
-                case mcts::StageType::CHANCE:
-                {
+                case mcts::StageType::CHANCE: {
                     if constexpr (ProblemType::hasChanceEvents)
                     {
                         auto reward = problem.performRandomChanceEvent(state);
