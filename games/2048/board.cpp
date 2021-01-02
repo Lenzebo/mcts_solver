@@ -71,7 +71,6 @@ uint8_t Board::biggestExp() const
 }
 size_t Board::biggestTile() const
 {
-
     return 1U << biggestExp();
 }
 
@@ -122,6 +121,5 @@ std::ostream& operator<<(std::ostream& os, const Board& board)
     }
     return os;
 }
-
 
 }  // namespace g2048

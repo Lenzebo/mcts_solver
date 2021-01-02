@@ -1,16 +1,14 @@
 
-#include <iostream>
-#include "mcts/solver.h"
-#include "mcts/selection/ucb1.h"
-
-#include <iostream>
-#include <fstream>
-#include <chrono>
-#include <algorithm>
-#include <map>
-
 #include "2048.h"
+#include "mcts/selection/ucb1.h"
+#include "mcts/solver.h"
 #include "policies.h"
+
+#include <algorithm>
+#include <chrono>
+#include <fstream>
+#include <iostream>
+#include <map>
 
 using namespace mcts;
 
@@ -38,14 +36,14 @@ Result playG2048WithPolicy(Policy& policy)
             auto action = policy.getAction(state, game);
             rewards += game.performAction(action, state);
             numMoves++;
-                       //state.print();
+            // state.print();
         }
         else
         {
             rewards += game.performRandomChanceEvent(state);
         }
     }
-    //state.print();
+    // state.print();
     //    std::cout << "Final score is " << rewards << "\n";
 
     auto end = std::chrono::system_clock::now();
@@ -145,14 +143,12 @@ int main(int, char**)
         evaluatePolicy(g2048::FixedSequencePolicy{}, count);
     }
 
-
     {
         std::cout << "#### MCRolloutPolicy (1 / 10 / 0.95): " << std::endl;
         evaluatePolicy(g2048::MCRolloutPolicy{10, 10, 0.95f}, count);
     }
 
     return 0;
-
 
     {
         std::cout << "#### MCRolloutPolicy: " << std::endl;
