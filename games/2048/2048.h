@@ -60,7 +60,7 @@ class G2048State : public mcts::State<G2048State>
   public:
     G2048State() : board_() { resetBoard(); }
 
-    explicit G2048State(const Board& board, bool chance = false) : board_(board), nextIsChance(chance) {}
+    explicit G2048State(const Board& board, bool chance = false) : board_(board), nextIsChance_(chance) {}
     void resetBoard() { board_ = {}; }
 
     std::ostream& writeToStream(std::ostream& stream) const;  // NOLINT
@@ -71,15 +71,15 @@ class G2048State : public mcts::State<G2048State>
     void setBoard(size_t x, size_t y, uint8_t value) { board_.set(x, y, value); }
 
     [[nodiscard]] const Board& board() const { return board_; }
-    [[nodiscard]] bool isChanceNext() const { return nextIsChance; }
-    void setNextChance(bool isChance) { nextIsChance = isChance; }
+    [[nodiscard]] bool isChanceNext() const { return nextIsChance_; }
+    void setNextChance(bool isChance) { nextIsChance_ = isChance; }
 
-    bool operator==(const G2048State& rhs) const;
-    bool operator!=(const G2048State& rhs) const;
+    [[nodiscard]] bool operator==(const G2048State& rhs) const;
+    [[nodiscard]] bool operator!=(const G2048State& rhs) const;
 
   private:
     Board board_{};
-    bool nextIsChance = true;
+    bool nextIsChance_ = true;
 };
 
 struct ProblemDefinition
@@ -101,7 +101,7 @@ class G2048Problem : public mcts::Problem<G2048Problem, ProblemDefinition>
 {
   public:
     G2048Problem() = default;
-    G2048Problem(size_t seed) : engine(seed) {}
+    G2048Problem(size_t seed) : engine_(seed) {}
     std::string actionToString(const StateType& state, const ActionType& action) const;  // NOLINT
 
     static mcts::StageType getNextStageType(const G2048State& state);
@@ -125,18 +125,17 @@ class G2048Problem : public mcts::Problem<G2048Problem, ProblemDefinition>
         bool right{false};
         bool up{false};
         bool down{false};
-        bool any() const { return left || right || up || down; }
-        bool all() const { return left && right && up && down; }
+        [[nodiscard]] bool any() const { return left || right || up || down; }
+        [[nodiscard]] bool all() const { return left && right && up && down; }
     };
 
-    CanMove canMove(const G2048State& state) const;
+    [[nodiscard]] CanMove canMove(const G2048State& state) const;
     [[nodiscard]] size_t countEmptyCells(const G2048State& state) const;
 
     void addRandomElement(G2048State& state) const;
 
   private:
-    mutable std::minstd_rand0 engine{};
-    mutable std::bernoulli_distribution bernoulli{PROBABILITY_SPAWN_2};
-    mutable std::uniform_int_distribution<int> actionDist{0, 3};
+    mutable std::minstd_rand0 engine_{};
+    mutable std::bernoulli_distribution bernoulli_{PROBABILITY_SPAWN_2};
 };
 }  // namespace g2048

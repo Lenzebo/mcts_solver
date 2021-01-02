@@ -29,7 +29,7 @@ namespace g2048 {
 class FixedSequencePolicy
 {
   public:
-    static constexpr std::array<g2048::Actions, 4> ordering = {g2048::Actions::DOWN, g2048::Actions::RIGHT,
+    static constexpr std::array<g2048::Actions, 4> ORDERING = {g2048::Actions::DOWN, g2048::Actions::RIGHT,
                                                                g2048::Actions::UP, g2048::Actions::LEFT};
 
     [[nodiscard]] Actions getAction(const g2048::G2048State& state, const g2048::G2048Problem& problem) const;
@@ -49,7 +49,7 @@ class BestPositionPolicy
         uint8_t x;
         uint8_t y;
     };
-    std::vector<std::vector<Point>> paths;
+    std::vector<std::vector<Point>> paths_;
 
     [[nodiscard]] float getPositionalScore(const g2048::G2048State& state) const;
     [[nodiscard]] float getOrderingScore(const g2048::G2048State& state) const;
@@ -86,6 +86,7 @@ class MCTSPolicy
 class MCRolloutPolicy : public mcts::RandomRolloutPolicy
 {
   public:
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
     MCRolloutPolicy(size_t iterations = 100, size_t depth = 100, const float discount = 0.99f)
         : mcts::RandomRolloutPolicy(depth, discount)
     {

@@ -14,7 +14,7 @@ bool G2048State::empty(size_t x, size_t y) const
 }
 bool G2048State::operator==(const G2048State& rhs) const
 {
-    return board_ == rhs.board_ && nextIsChance == rhs.nextIsChance;
+    return board_ == rhs.board_ && nextIsChance_ == rhs.nextIsChance_;
 }
 bool G2048State::operator!=(const G2048State& rhs) const
 {
@@ -219,7 +219,7 @@ ProblemDefinition::ValueVector G2048Problem::performRandomChanceEvent(G2048State
 ProblemDefinition::ValueVector G2048Problem::performRandomAction(G2048State& state) const
 {
     auto actions = getAvailableActions(state);
-    auto ac = actions[engine() % actions.size()];
+    auto ac = actions[engine_() % actions.size()];
     return performAction(ac, state);
 }
 
@@ -283,7 +283,7 @@ void G2048Problem::addRandomElement(G2048State& state) const
     assert(numEmpty > 0);
 
     std::uniform_int_distribution<size_t> dist(0, numEmpty - 1);
-    size_t randNum = dist(engine);
+    size_t randNum = dist(engine_);
 
     for (uint8_t x = 0; x < BOARD_DIMS; ++x)
     {
@@ -295,7 +295,7 @@ void G2048Problem::addRandomElement(G2048State& state) const
             }
             if (randNum == 0)
             {
-                if (bernoulli(engine))
+                if (bernoulli_(engine_))
                 {
                     state.setBoard(x, y, 1);
                 }
