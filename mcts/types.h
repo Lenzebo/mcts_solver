@@ -24,6 +24,7 @@
 
 #include "zbo/named_type.h"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 
