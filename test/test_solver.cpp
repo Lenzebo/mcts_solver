@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cassert>
 #include <optional>
 
 enum class SelectCoin
@@ -23,6 +24,9 @@ std::string to_string(SelectCoin c)
         case SelectCoin::TAILS:
             return "TAILS";
     }
+
+    assert(false);
+    return "";
 }
 
 std::ostream& operator<<(std::ostream& str, SelectCoin c)
