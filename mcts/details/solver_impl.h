@@ -26,6 +26,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <cassert>
 
 namespace mcts {
 
