@@ -25,6 +25,7 @@
 #include "types.h"
 
 #include <array>
+#include <limits>
 
 namespace mcts {
 

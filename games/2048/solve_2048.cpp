@@ -28,7 +28,7 @@ Result playG2048WithPolicy(Policy& policy)
     g2048::G2048Problem game(std::random_device().operator()());
     g2048::G2048Problem::ValueVector rewards{};
     size_t numMoves = 0;
-    auto start = std::chrono::system_clock::now();
+    const auto start = std::chrono::system_clock::now();
     while (!game.isTerminal(state))
     {
         if (game.getNextStageType(state) == mcts::StageType::DECISION)
@@ -46,8 +46,9 @@ Result playG2048WithPolicy(Policy& policy)
     // state.print();
     //    std::cout << "Final score is " << rewards << "\n";
 
-    auto end = std::chrono::system_clock::now();
-    return {rewards, state.board().biggestTile(), state, numMoves, end - start};
+    const auto end = std::chrono::system_clock::now();
+    const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    return {rewards, state.board().biggestTile(), state, numMoves, duration};
 }
 
 auto getMCTSSolverRandomRollout(size_t numIterations = 1000)

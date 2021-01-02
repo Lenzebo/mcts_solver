@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 #pragma once
-#include "../solver.h"
 #include "selection.h"
 
 #include <cassert>

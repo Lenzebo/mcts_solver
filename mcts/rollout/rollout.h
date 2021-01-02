@@ -24,6 +24,8 @@
 
 #include "mcts/types.h"
 
+#include <limits>
+
 namespace mcts {
 
 /**
