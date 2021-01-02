@@ -24,9 +24,9 @@
 
 #include "../solver.h"
 
+#include <cassert>
 #include <iomanip>
 #include <iostream>
-#include <cassert>
 
 namespace mcts {
 

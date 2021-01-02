@@ -24,10 +24,10 @@
 #include "../solver.h"
 #include "selection.h"
 
+#include <cassert>
 #include <cmath>
 #include <random>
 #include <variant>
-#include <cassert>
 
 namespace mcts {
 
