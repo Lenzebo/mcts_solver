@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include "2048.h"
+
+#include <gtest/gtest.h>
 
 TEST(Board, SetValues)
 {
@@ -56,7 +56,7 @@ TEST_P(G2048Test, Action)
 }
 
 // clang-format off
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     , G2048Test,
     testing::ValuesIn({TestData{.source = {{{0, 0, 2, 0},
                                             {0, 0, 0, 0},

@@ -16,6 +16,7 @@ TEST(Tree, Init)
     tree.setRoot(TTTTree::Node(p, state, TTTTree::Node::DecisionNode(p, state)));
     TTTTree::Node node(p, state, TTTTree::Node::DecisionNode(p, state));
 
+    tree.reserve(100);
     auto rootId = tree.root().nodeId;
     tree.insert(rootId, node);
     tree.insert(rootId, node);

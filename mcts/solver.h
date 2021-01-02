@@ -1,17 +1,38 @@
+// MIT License
+//
+// Copyright (c) 2020 Lenzebo
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 #pragma once
 
-#include "tree.h"
 #include "node_statistic.h"
-#include "selection/ucb1.h"
 #include "rollout/random_rollout.h"
+#include "selection/ucb1.h"
+#include "tree.h"
+#include "zbo/max_size_vector.h"
+#include "zbo/named_type.h"
 
-#include "utils/named_type.h"
-#include "utils/max_size_vector.h"
-
+#include <atomic>
 #include <cmath>
 #include <random>
 #include <variant>
-#include <atomic>
 
 namespace mcts {
 
@@ -33,8 +54,9 @@ class Solver
   public:
     struct Parameter
     {
+        static constexpr size_t DEFAULT_ITERATIONS = 10000;
         /// maximal number of iterations the algorithm should run
-        size_t numIterations = 10000;
+        size_t numIterations = DEFAULT_ITERATIONS;
     };
 
     Solver() = default;
@@ -47,31 +69,31 @@ class Solver
     ActionType run(const ProblemType& problem, const StateType& root);
     ActionType runFromExistingTree(NodeId newRoot);
 
-    Parameter& parameter() { return params_; }
-    const Parameter& parameter() const { return params_; }
+    [[nodiscard]] Parameter& parameter() { return params_; }
+    [[nodiscard]] const Parameter& parameter() const { return params_; }
 
-    bool isRunning() const { return running_; }
-    size_t currentIteration() const { return currentIteration_; }
+    [[nodiscard]] bool isRunning() const { return running_; }
+    [[nodiscard]] size_t currentIteration() const { return currentIteration_; }
 
     void printTopLevelUtilities() const;
-    std::vector<std::pair<ActionType, Statistic<ValueType>>> getTopLevelUtilities() const;
+    [[nodiscard]] std::vector<std::pair<ActionType, Statistic<ValueType>>> getTopLevelUtilities() const;
 
-    const TreeType tree() const { return tree_; }
+    [[nodiscard]] const TreeType& tree() const { return tree_; }
 
   private:
     void init(const ProblemType& problem, const StateType& root);
     void iteration();
-    ActionType currentBestAction() const;
+    [[nodiscard]] ActionType currentBestAction() const;
 
-    NodeId selection();
-    NodeId selectionOnce(const Node& node);
+    [[nodiscard]] NodeId selection();
+    [[nodiscard]] NodeId selectionOnce(const Node& node);
 
-    void expansion(NodeId current_node);
+    void expansion(NodeId currentNode);
     void expansion(Node& node);
     void expansion(const Node& node, DecisionNode& decNode);
     void expansion(Node& node, ChanceNode& chanceNode);
 
-    ValueVector rollout(NodeId current_node);
+    [[nodiscard]] ValueVector rollout(NodeId currentNode);
 
     void backpropagate(const NodeId& expandedNode, const ValueVector& values);
     void visitBackpropagate(Node& node, const Edge& edge, const ValueVector& values);

@@ -1,15 +1,44 @@
+// MIT License
+//
+// Copyright (c) 2020 Lenzebo
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 #pragma once
-#include "utils/named_type.h"
 #include "node_statistic.h"
-#include "utils/max_size_vector.h"
+#include "zbo/max_size_vector.h"
+#include "zbo/named_type.h"
 
 #include <variant>
 #include <vector>
 
 namespace mcts {
 
-using NodeId = NamedType<size_t, struct NodeTag>;
-using EdgeId = NamedType<size_t, struct EdgeTag>;
+struct NodeId : public zbo::NamedType<size_t, NodeId>, zbo::EqualityComparable<NodeId>
+{
+    using NamedType::NamedType;
+};
+
+struct EdgeId : public zbo::NamedType<size_t, NodeId>, zbo::EqualityComparable<NodeId>
+{
+    using NamedType::NamedType;
+};
 
 constexpr EdgeId ROOT_EDGE{std::numeric_limits<size_t>::max()};
 constexpr NodeId INVALID_NODE{std::numeric_limits<size_t>::max()};
@@ -39,7 +68,7 @@ struct Tree
                 playerId = s.getCurrentPlayer();
             }
             NodeStatistic<ValueType, ProblemType::maxNumActions> statistics{};
-            MaxSizeVector<ActionType, ProblemType::maxNumActions> actions{};
+            zbo::MaxSizeVector<ActionType, ProblemType::maxNumActions> actions{};
             uint8_t playerId{};
         };
 
@@ -56,7 +85,7 @@ struct Tree
                     events = p.getAvailableChanceEvents(s);
                 }
             }
-            MaxSizeVector<ChanceEventWithProbability, ProblemType::maxChanceEvents> events;
+            zbo::MaxSizeVector<ChanceEventWithProbability, ProblemType::maxChanceEvents> events;
         };
 
         using PayloadType = std::variant<DecisionNode, ChanceNode>;
@@ -106,7 +135,7 @@ struct Tree
 
         NodeId nodeId{};
         EdgeId incomingEdge{ROOT_EDGE};
-        MaxSizeVector<EdgeId, std::max(ProblemType::maxNumActions, ProblemType::maxChanceEvents)> outgoingEdges{};
+        zbo::MaxSizeVector<EdgeId, std::max(ProblemType::maxNumActions, ProblemType::maxChanceEvents)> outgoingEdges{};
 
         StateType state{};
         const ProblemType& problem;
@@ -228,4 +257,4 @@ struct Tree
     std::vector<Edge> edges_;
 };
 
-}
+}  // namespace mcts

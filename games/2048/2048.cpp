@@ -51,14 +51,14 @@ mcts::StageType G2048Problem::getNextStageType(const G2048State& state)
 /**
  * Should return a list of all possible actions for this player
  */
-[[nodiscard]] mcts::MaxSizeVector<Actions, 4> G2048Problem::getAvailableActions(const G2048State& state) const
+[[nodiscard]] zbo::MaxSizeVector<Actions, 4> G2048Problem::getAvailableActions(const G2048State& state) const
 {
     if (state.isChanceNext())
     {
         return {};
     }
 
-    mcts::MaxSizeVector<Actions, 4> retval{};
+    zbo::MaxSizeVector<Actions, 4> retval{};
     auto can = canMove(state);
     if (can.up)
     {
@@ -82,10 +82,10 @@ mcts::StageType G2048Problem::getNextStageType(const G2048State& state)
 /**
  * Should return a list of all possible chance events with probability
  */
-[[nodiscard]] mcts::MaxSizeVector<std::pair<float, ChanceEvent>, NUM_CELLS * 2> G2048Problem::getAvailableChanceEvents(
+[[nodiscard]] zbo::MaxSizeVector<std::pair<float, ChanceEvent>, NUM_CELLS * 2> G2048Problem::getAvailableChanceEvents(
     const G2048State& state) const
 {
-    mcts::MaxSizeVector<std::pair<float, ChanceEvent>, NUM_CELLS * 2> retval;
+    zbo::MaxSizeVector<std::pair<float, ChanceEvent>, NUM_CELLS * 2> retval;
     if (!state.isChanceNext())
     {
         return retval;

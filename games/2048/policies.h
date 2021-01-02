@@ -1,3 +1,25 @@
+// MIT License
+//
+// Copyright (c) 2020 Lenzebo
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 #pragma once
 
 #include "2048.h"
@@ -13,7 +35,7 @@ class FixedSequencePolicy
     [[nodiscard]] Actions getAction(const g2048::G2048State& state, const g2048::G2048Problem& problem) const;
 
   private:
-    [[nodiscard]] g2048::Actions getAction(const mcts::MaxSizeVector<g2048::Actions, 4>& availableActions) const;
+    [[nodiscard]] g2048::Actions getAction(const zbo::MaxSizeVector<g2048::Actions, 4>& availableActions) const;
 };
 
 class BestPositionPolicy
@@ -65,10 +87,9 @@ class MCRolloutPolicy : public mcts::RandomRolloutPolicy
 {
   public:
     MCRolloutPolicy(size_t iterations = 100, size_t depth = 100, const float discount = 0.99f)
+        : mcts::RandomRolloutPolicy(depth, discount)
     {
         iterations_ = iterations;
-        rolloutDepth_ = depth;
-        discount_ = discount;
     }
 
     [[nodiscard]] float rolloutMultiple(const g2048::G2048State state, const g2048::G2048Problem& game)
@@ -109,4 +130,4 @@ class MCRolloutPolicy : public mcts::RandomRolloutPolicy
   private:
     size_t iterations_;
 };
-}
+}  // namespace g2048

@@ -3,7 +3,7 @@
 #include <algorithm>
 
 namespace g2048 {
-g2048::Actions FixedSequencePolicy::getAction(const mcts::MaxSizeVector<g2048::Actions, 4>& availableActions) const
+g2048::Actions FixedSequencePolicy::getAction(const zbo::MaxSizeVector<g2048::Actions, 4>& availableActions) const
 {
     for (const auto action : ordering)
     {
@@ -103,4 +103,4 @@ float BestPositionPolicy::getCornerHighestScore(const g2048::G2048State& state) 
     return -float(maxError);
 }
 
-}
+}  // namespace g2048

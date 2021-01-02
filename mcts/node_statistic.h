@@ -1,6 +1,29 @@
+// MIT License
+//
+// Copyright (c) 2020 Lenzebo
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 #pragma once
 
 #include "types.h"
+
 #include <array>
 
 namespace mcts {
@@ -19,7 +42,6 @@ struct Statistic
     [[nodiscard]] ValueType value() const noexcept { return totalValue_ / double(std::max(1U, count_)); }
     [[nodiscard]] uint32_t count() const noexcept { return count_; }
     [[nodiscard]] ValueType max() const noexcept { return maxValue_; }
-
     [[nodiscard]] bool visited() const noexcept { return count_ != 0; }
 
   private:
@@ -33,57 +55,57 @@ struct Statistic
  * This could be either actions, events, edges, etc. Something with integer IDs
  * :) Unfortunately, it is the callers responsibility not to mix different ids.
  */
-template <typename ValueType, int MAX_NUM_STATISTICS>
+template <typename ValueType, int maxNumStatistics>
 class NodeStatistic
 {
   public:
     using Stat = Statistic<ValueType>;
-    NodeStatistic() { statistics.fill(Stat()); };
+    NodeStatistic() { statistics_.fill(Stat()); };
 
-    [[nodiscard]] uint32_t getTotalVisits() const { return visit_count; }
+    [[nodiscard]] uint32_t getTotalVisits() const { return visitCount_; }
 
     void initializeValue(size_t idx)
     {
-        statistics[idx].total_value = 0;
-        statistics[idx].count = 0;
-        statistics[idx].max_value = std::numeric_limits<ValueType>::lowest();
+        statistics_[idx].total_value = 0;
+        statistics_[idx].count = 0;
+        statistics_[idx].max_value = std::numeric_limits<ValueType>::lowest();
     }
 
     void visitWithValue(size_t idx, const ValueType& val)
     {
-        statistics[idx].add(val);
-        visit_count++;
+        statistics_[idx].add(val);
+        visitCount_++;
 
-        if (visit_count == 1)
+        if (visitCount_ == 1)
         {
-            _min = _max = val;
+            min_ = max_ = val;
         }
         else
         {
-            _min = std::min(_min, val);
-            _max = std::max(_max, val);
+            min_ = std::min(min_, val);
+            max_ = std::max(max_, val);
         }
     }
 
-    const Stat& stat(size_t idx) const { return statistics[idx]; }
+    const Stat& stat(size_t idx) const { return statistics_[idx]; }
 
     // Returns the maximum and minimum of all the visits
     void getMinMaxValue(ValueType& max, ValueType& min) const
     {
-        max = _max;
-        min = _min;
+        max = max_;
+        min = min_;
     }
 
-    const std::array<Stat, MAX_NUM_STATISTICS>& getStatistics() const { return statistics; }
+    const std::array<Stat, maxNumStatistics>& getStatistics() const { return statistics_; }
 
-    const Stat* begin() const { return statistics.begin(); }
-    const Stat* end() const { return statistics.end(); }
+    const Stat* begin() const { return statistics_.begin(); }
+    const Stat* end() const { return statistics_.end(); }
 
   private:
-    std::array<Stat, MAX_NUM_STATISTICS> statistics;
-    uint32_t visit_count = 0;
-    ValueType _min = 0.0;
-    ValueType _max = 1.0;
+    std::array<Stat, maxNumStatistics> statistics_;
+    uint32_t visitCount_ = 0;
+    ValueType min_ = 0.0;
+    ValueType max_ = 1.0;
 };
 
 }  // namespace mcts
