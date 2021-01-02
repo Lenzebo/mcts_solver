@@ -35,7 +35,7 @@ class State
      */
     [[nodiscard]] uint8_t getCurrentPlayer() const { return currentPlayer_; }
     void setCurrentPlayer(uint8_t player) { currentPlayer_ = player; }
-    void increasePlayer(size_t max_player) { currentPlayer_ = (currentPlayer_ + 1) % max_player; }
+    void increasePlayer(size_t maxPlayer) { currentPlayer_ = (currentPlayer_ + 1) % maxPlayer; }
     void print() const { asDerived().writeToStream(std::cout); };
 
     std::ostream& writeToStream(std::ostream& stream) const
@@ -45,8 +45,8 @@ class State
     }
 
   private:
-    StateType& asDerived() { return static_cast<StateType&>(*this); }
-    const StateType& asDerived() const { return static_cast<const StateType&>(*this); }
+    [[nodiscard]] StateType& asDerived() { return static_cast<StateType&>(*this); }
+    [[nodiscard]] const StateType& asDerived() const { return static_cast<const StateType&>(*this); }
 
     uint8_t currentPlayer_ = 0;
 };

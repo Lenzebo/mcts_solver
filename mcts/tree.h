@@ -67,8 +67,8 @@ struct Tree
                 actions = p.getAvailableActions(s);
                 playerId = s.getCurrentPlayer();
             }
-            NodeStatistic<ValueType, ProblemType::maxNumActions> statistics{};
-            zbo::MaxSizeVector<ActionType, ProblemType::maxNumActions> actions{};
+            NodeStatistic<ValueType, ProblemType::MAX_NUM_ACTIONS> statistics{};
+            zbo::MaxSizeVector<ActionType, ProblemType::MAX_NUM_ACTIONS> actions{};
             uint8_t playerId{};
         };
 
@@ -80,19 +80,19 @@ struct Tree
         {
             explicit ChanceNode(const ProblemType& p, const StateType& s) noexcept
             {
-                if constexpr (ProblemType::hasChanceEvents)
+                if constexpr (ProblemType::HAS_CHANCE_EVENTS)
                 {
                     events = p.getAvailableChanceEvents(s);
                 }
             }
-            zbo::MaxSizeVector<ChanceEventWithProbability, ProblemType::maxChanceEvents> events;
+            zbo::MaxSizeVector<ChanceEventWithProbability, ProblemType::MAX_CHANCE_EVENTS> events;
         };
 
         using PayloadType = std::variant<DecisionNode, ChanceNode>;
 
         [[nodiscard]] static PayloadType payloadFromState(const ProblemType& p, const StateType& s)
         {
-            if constexpr (ProblemType::hasChanceEvents)
+            if constexpr (ProblemType::HAS_CHANCE_EVENTS)
             {
                 switch (p.getNextStageType(s))
                 {
@@ -110,8 +110,8 @@ struct Tree
         {
         }
 
-        explicit Node(const ProblemType& p, const StateType& s, const PayloadType& payload) noexcept
-            : state(s), problem(p), payload(payload)
+        explicit Node(const ProblemType& p, const StateType& s, PayloadType payload) noexcept
+            : state(s), problem(p), payload(std::move(payload))
         {
         }
 
@@ -135,7 +135,8 @@ struct Tree
 
         NodeId nodeId{};
         EdgeId incomingEdge{ROOT_EDGE};
-        zbo::MaxSizeVector<EdgeId, std::max(ProblemType::maxNumActions, ProblemType::maxChanceEvents)> outgoingEdges{};
+        zbo::MaxSizeVector<EdgeId, std::max(ProblemType::MAX_NUM_ACTIONS, ProblemType::MAX_CHANCE_EVENTS)>
+            outgoingEdges{};
 
         StateType state{};
         const ProblemType& problem;
@@ -185,7 +186,7 @@ struct Tree
 
     [[nodiscard]] bool contains(NodeId node) const { return node.get() < nodes_.size(); }
 
-    Tree subTree(NodeId parent) const
+    [[nodiscard]] Tree subTree(NodeId parent) const
     {
         if (!contains(parent))
         {
@@ -200,19 +201,19 @@ struct Tree
         return tree;
     }
 
-    auto begin() const { return nodes_.begin(); }
-    auto end() const { return nodes_.end(); }
+    [[nodiscard]] auto begin() const { return nodes_.begin(); }
+    [[nodiscard]] auto end() const { return nodes_.end(); }
 
     [[nodiscard]] size_t capacity() const { return nodes_.capacity(); }
     [[nodiscard]] size_t nodeCount() const { return nodes_.size(); }
 
-    Node& operator[](NodeId node) { return nodes_[node.get()]; };
-    const Node& operator[](NodeId node) const { return nodes_[node.get()]; };
-    Edge& operator[](EdgeId edge) { return edges_[edge.get()]; };
-    const Edge& operator[](EdgeId edge) const { return edges_[edge.get()]; };
+    [[nodiscard]] Node& operator[](NodeId node) { return nodes_[node.get()]; };
+    [[nodiscard]] const Node& operator[](NodeId node) const { return nodes_[node.get()]; };
+    [[nodiscard]] Edge& operator[](EdgeId edge) { return edges_[edge.get()]; };
+    [[nodiscard]] const Edge& operator[](EdgeId edge) const { return edges_[edge.get()]; };
 
-    const Node& root() const { return nodes_[0]; }
-    Node& root() { return nodes_[0]; }
+    [[nodiscard]] const Node& root() const { return nodes_[0]; }
+    [[nodiscard]] Node& root() { return nodes_[0]; }
 
     std::pair<NodeId, EdgeId> insert(NodeId parent, Node newNode)
     {
@@ -238,8 +239,8 @@ struct Tree
         return {newId, newEdgeId};
     }
 
-    const std::vector<Node>& nodes() const { return nodes_; }
-    const std::vector<Edge>& edges() const { return edges_; }
+    [[nodiscard]] const std::vector<Node>& nodes() const { return nodes_; }
+    [[nodiscard]] const std::vector<Edge>& edges() const { return edges_; }
 
   private:
     void insertExpandSubTree(Tree& tree, NodeId parent, NodeId newParent) const

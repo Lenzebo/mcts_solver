@@ -74,7 +74,7 @@ class NodeStatistic
 
     void visitWithValue(size_t idx, const ValueType& val)
     {
-        statistics_[idx].add(val);
+        statistics_.at(idx).add(val);
         visitCount_++;
 
         if (visitCount_ == 1)
@@ -88,7 +88,7 @@ class NodeStatistic
         }
     }
 
-    const Stat& stat(size_t idx) const { return statistics_[idx]; }
+    [[nodiscard]] const Stat& stat(size_t idx) const { return statistics_[idx]; }
 
     // Returns the maximum and minimum of all the visits
     void getMinMaxValue(ValueType& max, ValueType& min) const
@@ -97,10 +97,10 @@ class NodeStatistic
         min = min_;
     }
 
-    const std::array<Stat, maxNumStatistics>& getStatistics() const { return statistics_; }
+    [[nodiscard]] const std::array<Stat, maxNumStatistics>& getStatistics() const { return statistics_; }
 
-    const Stat* begin() const { return statistics_.begin(); }
-    const Stat* end() const { return statistics_.end(); }
+    [[nodiscard]] const Stat* begin() const { return statistics_.begin(); }
+    [[nodiscard]] const Stat* end() const { return statistics_.end(); }
 
   private:
     std::array<Stat, maxNumStatistics> statistics_;

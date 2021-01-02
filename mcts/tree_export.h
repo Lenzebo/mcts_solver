@@ -42,7 +42,7 @@ template <typename ProblemType>
 void exportEdge(const typename Tree<ProblemType>::Edge& edge, const typename Tree<ProblemType>::Node node,
                 const typename Tree<ProblemType>::Node::ChanceNode& parentNode, std::ostream& stream)
 {
-    if constexpr (ProblemType::hasChanceEvents)
+    if constexpr (ProblemType::HAS_CHANCE_EVENTS)
     {
         using namespace std;
         const std::string edgeLabel = node.problem.eventToString(node.state, parentNode.events[edge.index].second);

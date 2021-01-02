@@ -1,5 +1,6 @@
 #include "mcts/solver.h"
 #include "tic_tac_toe.h"
+#include "zbo/stop_watch.h"
 
 #include <chrono>
 #include <iostream>
@@ -7,17 +8,17 @@
 using namespace mcts;
 using namespace ttt;
 
-int testMCTSTicTacToe(bool switch_players, size_t& mctsIterations)
+int testMCTSTicTacToe(bool switchPlayers, size_t& mctsIterations)
 {
     TicTacToeState state;
     TicTacToeProblem game;
     TicTacToeProblem::ValueVector rewards;
     static mcts::Solver<TicTacToeProblem, UCB1SelectionPolicy<float>, RolloutPolicy<ttt::TicTacToePolicy> > solver;
-    solver.parameter().numIterations = 1000;
+    solver.parameter().numIterations = 1000;  // NOLINT
 
     while (!game.isTerminal(state))
     {
-        if ((state.getCurrentPlayer() == 0 && !switch_players) || (state.getCurrentPlayer() == 1 && switch_players))
+        if ((state.getCurrentPlayer() == 0 && !switchPlayers) || (state.getCurrentPlayer() == 1 && switchPlayers))
         {
             auto action = solver.run(game, state);
             rewards = game.performAction(action, state);
@@ -34,11 +35,11 @@ int testMCTSTicTacToe(bool switch_players, size_t& mctsIterations)
     int result = int(rewards[0] * 2 - 1);
     if (result == 1)
     {
-        return 1 - switch_players;
+        return 1 - switchPlayers;
     }
     else if (result == -1)
     {
-        return switch_players;
+        return switchPlayers;
     }
     else
     {
@@ -48,53 +49,54 @@ int testMCTSTicTacToe(bool switch_players, size_t& mctsIterations)
 
 int main(int, char**)
 {
-    uint32_t num_iterations = 1000;
+    constexpr uint32_t NUM_ITERATIONS = 1000;
 
-    uint32_t num_wins_1 = 0;
-    uint32_t num_wins_2 = 0;
-    uint32_t num_draws = 0;
+    uint32_t numWins1 = 0;
+    uint32_t numWins2 = 0;
+    uint32_t numDraws = 0;
 
     size_t mctsIterations = 0;
 
-    auto tstart = std::chrono::system_clock::now();
-    for (size_t i = 0; i < num_iterations; ++i)
+    zbo::StopWatch total;
+    total.start();
+    for (size_t i = 0; i < NUM_ITERATIONS; ++i)
     {
-        auto t1 = std::chrono::system_clock::now();
-        int retval = testMCTSTicTacToe(i % 2 == 0, mctsIterations);
+        zbo::StopWatch iteration;
+        iteration.start();
+
+        const bool switchPlayers = i % 2 == 0;
+        const int retval = testMCTSTicTacToe(switchPlayers, mctsIterations);
         if (retval == 0)
         {
-            num_wins_1++;
+            numWins1++;
         }
         else if (retval == 1)
         {
-            num_wins_2++;
+            numWins2++;
         }
         else
         {
-            num_draws++;
+            numDraws++;
         }
-        auto t2 = std::chrono::system_clock::now();
-
-        auto dt = t2 - t1;
+        auto dt = iteration.stop();
 
         // print formatted date
         std::cout << "Game # " << i << " took " << std::chrono::duration_cast<std::chrono::milliseconds>(dt).count()
                   << "ms" << std::endl;
     }
 
-    auto tend = std::chrono::system_clock::now();
-
-    auto dttotal = tend - tstart;
+    auto dttotal = total.stop();
 
     // print formatted date
     std::cout << "All games took " << std::chrono::duration_cast<std::chrono::milliseconds>(dttotal).count()
               << "ms, which is a mean duration of "
-              << double(std::chrono::duration_cast<std::chrono::milliseconds>(dttotal).count()) / num_iterations
+              << double(std::chrono::duration_cast<std::chrono::milliseconds>(dttotal).count()) / NUM_ITERATIONS
               << "ms. and a duration of "
               << double(std::chrono::duration_cast<std::chrono::microseconds>(dttotal).count()) / mctsIterations
               << "us per mcts iteration" << std::endl;
 
-    std::cout << "Player 1: " << double(num_wins_1) / double(num_iterations) * 100 << "%\n";
-    std::cout << "Player 2: " << double(num_wins_2) / double(num_iterations) * 100 << "%\n";
-    std::cout << "Draws:    " << double(num_draws) / double(num_iterations) * 100 << "%\n";
+    constexpr int PERCENT = 100;
+    std::cout << "Player 1: " << double(numWins1) / double(NUM_ITERATIONS) * PERCENT << "%\n";
+    std::cout << "Player 2: " << double(numWins2) / double(NUM_ITERATIONS) * PERCENT << "%\n";
+    std::cout << "Draws:    " << double(numDraws) / double(NUM_ITERATIONS) * PERCENT << "%\n";
 }

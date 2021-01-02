@@ -25,30 +25,57 @@
 #include "mcts/problem.h"
 #include "mcts/state.h"
 #include "zbo/max_size_vector.h"
-
-#include <assert.h>
+#include "zbo/meta_enum.h"
 
 #include <array>
+#include <cassert>
 #include <iostream>
 
-#define BOARD_EMPTY 0
-
 namespace ttt {
+
+constexpr size_t BOARD_SIZE = 9;
+
+constexpr std::array<std::array<size_t, 3>, 8> WIN_PATTERNS{{
+    {0, 1, 2},  // row 1
+    {3, 4, 5},  // row 2
+    {6, 7, 8},  // row 3
+    {0, 3, 6},  // col 1
+    {1, 4, 7},  // col 2
+    {2, 5, 8},  // col 3
+    {0, 4, 8},  // diag 1
+    {2, 4, 6}   // diag 2
+}};
+
+ZBO_ENUM_CLASS(FieldType, uint8_t, EMPTY = 0, PLAYER1 = 1, PLAYER2 = 2)
+ZBO_ENUM_CLASS(Actions, uint8_t, TOP_LEFT = 0, TOP_MIDDLE = 1, TOP_RIGHT = 2, MIDDLE_LEFT = 3, MIDDLE = 4,
+               MIDDLE_RIGHT = 5, BOTTOM_LEFT = 6, BOTTOM_MIDDLE = 7, BOTTOM_RIGHT = 8)
+
+inline std::string to_string(Actions action)  // NOLINT
+{
+    return std::string(zbo::enumToString(action));
+}
+
+inline std::ostream& operator<<(std::ostream& stream, Actions action)
+{
+    return stream << zbo::enumToString(action);
+}
+
+constexpr float WIN = 1.0f;
 class TicTacToeState : public mcts::State<TicTacToeState>
 {
   public:
     TicTacToeState() { resetBoard(); }
     void resetBoard()
     {
-        num_remaining_actions = 9;
-        board.fill(BOARD_EMPTY);
+        numRemainingActions = BOARD_SIZE;
+        board.fill(FieldType::EMPTY);
     }
 
     std::ostream& writeToStream(std::ostream& stream) const
     {
-        for (uint8_t i = 0; i < 9; ++i)
+        for (uint8_t i = 0; i < BOARD_SIZE; ++i)
         {
-            stream << int(board[i]) << " ";
+            stream << int(board.at(i)) << " ";
             if (i % 3 == 2)
             {
                 stream << "\n";
@@ -57,22 +84,14 @@ class TicTacToeState : public mcts::State<TicTacToeState>
         return mcts::State<TicTacToeState>::writeToStream(stream);
     }
 
-    std::array<uint8_t, 9> board;
-    uint8_t num_remaining_actions;
+    std::array<FieldType, BOARD_SIZE> board{};
+    uint8_t numRemainingActions{BOARD_SIZE};
 };
 
-enum Actions
+constexpr size_t actionToBoardIdx(Actions action)
 {
-    TOP_LEFT = 0,
-    TOP_MIDDLE = 1,
-    TOP_RIGHT = 2,
-    MIDDLE_LEFT = 3,
-    MIDDLE = 4,
-    MIDDLE_RIGHT = 5,
-    BOTTOM_LEFT = 6,
-    BOTTOM_MIDDLE = 7,
-    BOTTOM_RIGHT = 8
-};
+    return static_cast<size_t>(action);
+}
 
 struct ProblemDefinition
 {
@@ -81,111 +100,96 @@ struct ProblemDefinition
     using ChanceEventType = mcts::NoEvent;
     using StateType = TicTacToeState;
 
-    static constexpr int numPlayers = 2;
-    static constexpr int maxNumActions = 9;
-    static constexpr int maxChanceEvents = 0;
+    static constexpr int NUM_PLAYERS = 2;
+    static constexpr int MAX_NUM_ACTIONS = 9;
+    static constexpr int MAX_CHANCE_EVENTS = 0;
 
-    using ValueVector = std::array<float, numPlayers>;
+    using ValueVector = std::array<float, NUM_PLAYERS>;
 };
 
 class TicTacToeProblem : public mcts::Problem<TicTacToeProblem, ProblemDefinition>
 {
   public:
-    TicTacToeProblem(){};
+    TicTacToeProblem() = default;
 
-    mcts::StageType getNextStageType(const TicTacToeState&) const { return mcts::StageType::DECISION; }
+    [[nodiscard]] constexpr mcts::StageType getNextStageType(const TicTacToeState&) const
+    {
+        return mcts::StageType::DECISION;
+    }
 
     /**
      * Should return a list of all possible actions for this player
      */
-    [[nodiscard]] zbo::MaxSizeVector<ActionType, 9> getAvailableActions(const TicTacToeState& state) const
+    [[nodiscard]] zbo::MaxSizeVector<Actions, BOARD_SIZE> getAvailableActions(const TicTacToeState& state) const
     {
-        zbo::MaxSizeVector<ActionType, 9> remaining_actions;
-        if (state.num_remaining_actions == 0)  // if somebody did win, then there are no possible actions anymore
+        using ActionVec = zbo::MaxSizeVector<Actions, BOARD_SIZE>;
+
+        if (state.numRemainingActions == 0)  // if somebody did win, then there are no possible actions anymore
         {
             return {};
         }
-        else if (state.num_remaining_actions ==
-                 9)  // for the first move, we can apply symmetric reduction of the state space
+        else if (state.numRemainingActions ==
+                 BOARD_SIZE)  // for the first move, we can apply symmetric reduction of the state space
         {
-            remaining_actions.reserve(3);
-            remaining_actions.push_back(TOP_LEFT);    // corner
-            remaining_actions.push_back(TOP_MIDDLE);  // side
-            remaining_actions.push_back(MIDDLE);      // middle
+            return ActionVec{Actions::TOP_LEFT, Actions::TOP_MIDDLE, Actions::MIDDLE};
         }
-        else if (state.num_remaining_actions == 8 &&
-                 (state.board[TOP_LEFT] != BOARD_EMPTY || state.board[TOP_MIDDLE] != BOARD_EMPTY ||
-                  state.board[MIDDLE] !=
-                      BOARD_EMPTY))  // second move, we can apply symmetric reduction of the state space
+        else if (state.numRemainingActions == BOARD_SIZE - 1 &&
+                 (state.board[actionToBoardIdx(Actions::TOP_LEFT)] != FieldType::EMPTY ||
+                  state.board[actionToBoardIdx(Actions::TOP_MIDDLE)] != FieldType::EMPTY ||
+                  state.board[actionToBoardIdx(Actions::MIDDLE)] !=
+                      FieldType::EMPTY))  // second move, we can apply symmetric reduction of the state space
         {
-            if (state.board[MIDDLE] != BOARD_EMPTY)  // first move was middle
+            if (state.board[actionToBoardIdx(Actions::MIDDLE)] != FieldType::EMPTY)  // first move was middle
             {
-                remaining_actions.reserve(2);
-                remaining_actions.push_back(TOP_LEFT);    // corner
-                remaining_actions.push_back(TOP_MIDDLE);  // side
+                return ActionVec{Actions::TOP_LEFT, Actions::TOP_MIDDLE};
             }
-            else if (state.board[TOP_LEFT] != BOARD_EMPTY)  // first move was left top corner
+            else if (state.board[actionToBoardIdx(Actions::TOP_LEFT)] !=
+                     FieldType::EMPTY)  // first move was left top corner
             {
-                remaining_actions.reserve(2);
-
-                remaining_actions.push_back(TOP_MIDDLE);    // side
-                remaining_actions.push_back(TOP_RIGHT);     // right top corner
-                remaining_actions.push_back(MIDDLE);        // middle
-                remaining_actions.push_back(MIDDLE_RIGHT);  // right
-                remaining_actions.push_back(BOTTOM_RIGHT);  // bottom right
+                return ActionVec{Actions::TOP_MIDDLE, Actions::TOP_RIGHT, Actions::MIDDLE, Actions::MIDDLE_RIGHT,
+                                 Actions::BOTTOM_RIGHT};
             }
-            else if (state.board[1] != BOARD_EMPTY)  // first move was top
+            else if (state.board[1] != FieldType::EMPTY)  // first move was top
             {
-                remaining_actions.reserve(2);
-
-                remaining_actions.push_back(TOP_LEFT);
-                remaining_actions.push_back(MIDDLE_LEFT);
-                remaining_actions.push_back(BOTTOM_LEFT);
-                remaining_actions.push_back(MIDDLE);
-                remaining_actions.push_back(BOTTOM_MIDDLE);
+                return ActionVec{Actions::TOP_LEFT, Actions::MIDDLE_LEFT, Actions::BOTTOM_LEFT, Actions::MIDDLE,
+                                 Actions::BOTTOM_MIDDLE};
             }
         }
-        else
-        {
-            remaining_actions.reserve(state.num_remaining_actions);
 
-            for (uint8_t i = 0; i < 9; ++i)
+        ActionVec remaining{};
+        for (uint8_t i = 0; i < BOARD_SIZE; ++i)
+        {
+            if (state.board.at(i) == FieldType::EMPTY)
             {
-                if (state.board[i] == BOARD_EMPTY)
-                {
-                    remaining_actions.push_back(static_cast<Actions>(i));
-                }
-                else
-                {
-                }
+                remaining.push_back(static_cast<Actions>(i));
             }
         }
-        return remaining_actions;
+        return remaining;
     };
 
     /**
      * Apply the action to the gamestate. Gamestate will be changed with this
      */
-    ValueVector performAction(const ActionType action, TicTacToeState& state) const
+    ValueVector performAction(const Actions action, TicTacToeState& state) const
     {
-        assert(action < 9 && "Action identifier must be between 0 and 8");
-        assert(state.board[action] == BOARD_EMPTY && "Action is not possible, because already played");
+        assert(state.board.at(actionToBoardIdx(action)) == FieldType::EMPTY &&
+               "Action is not possible, because already played");
         ValueVector retval{};
 
-        state.board[action] = state.getCurrentPlayer() + 1;
-        state.num_remaining_actions--;
+        state.board.at(actionToBoardIdx(action)) = static_cast<FieldType>(state.getCurrentPlayer() + 1);
+        state.numRemainingActions--;
 
-        assert(state.num_remaining_actions <= 9);
+        assert(state.numRemainingActions <= 9);
 
         if (didPlayerWin(state, state.getCurrentPlayer()))
         {
-            retval[state.getCurrentPlayer()] = 1;
-            state.num_remaining_actions = 0;
+            retval[state.getCurrentPlayer()] = WIN;
+            state.numRemainingActions = 0;
         }
-        else if (state.num_remaining_actions == 0)
+        else if (state.numRemainingActions == 0)
         {
-            retval[0] = 0.5;
-            retval[1] = 0.5;
+            retval[0] = WIN / 2;
+            retval[1] = WIN / 2;
         }
         state.increasePlayer(2);
         return retval;
@@ -195,24 +199,22 @@ class TicTacToeProblem : public mcts::Problem<TicTacToeProblem, ProblemDefinitio
      * Determines whether the game is over. That can be if no actions are possible or if another desired or undesired
      * state is acchieved
      */
-    [[nodiscard]] bool isTerminal(const TicTacToeState& state) const { return (state.num_remaining_actions == 0); };
+    [[nodiscard]] bool isTerminal(const TicTacToeState& state) const { return (state.numRemainingActions == 0); };
 
     [[nodiscard]] bool didPlayerWin(const TicTacToeState& state, uint8_t player) const
     {
-        if (state.num_remaining_actions > 4)
+        if (state.numRemainingActions > 4)
         {
             return false;
         }
 
-        uint8_t pp1 = player + 1;
-        return (((state.board[0] == pp1) && (state.board[1] == pp1) && (state.board[2] == pp1)) ||
-                ((state.board[3] == pp1) && (state.board[4] == pp1) && (state.board[5] == pp1)) ||
-                ((state.board[6] == pp1) && (state.board[7] == pp1) && (state.board[8] == pp1)) ||
-                ((state.board[0] == pp1) && (state.board[3] == pp1) && (state.board[6] == pp1)) ||
-                ((state.board[1] == pp1) && (state.board[4] == pp1) && (state.board[7] == pp1)) ||
-                ((state.board[2] == pp1) && (state.board[5] == pp1) && (state.board[8] == pp1)) ||
-                ((state.board[0] == pp1) && (state.board[4] == pp1) && (state.board[8] == pp1)) ||
-                ((state.board[2] == pp1) && (state.board[4] == pp1) && (state.board[6] == pp1)));
+        const auto pp1 = static_cast<FieldType>(player + 1);
+
+        return std::any_of(WIN_PATTERNS.begin(), WIN_PATTERNS.end(),
+                           [&state, pp1](const std::array<size_t, 3>& pattern) {
+                               return std::all_of(pattern.begin(), pattern.end(),
+                                                  [&state, pp1](size_t idx) { return state.board.at(idx) == pp1; });
+                           });
     }
 };
 
@@ -221,48 +223,48 @@ class TicTacToePolicy
   public:
     static Actions getAction(const TicTacToeState& state, const TicTacToeProblem&)
     {
-        assert(state.num_remaining_actions > 0);
+        assert(state.numRemainingActions > 0);
 
         // check whether we have to stop a instant win, or if we can win instantly
-        for (uint8_t i = 0; i < 9; ++i)
+        for (uint8_t i = 0; i < BOARD_SIZE; ++i)
         {
             uint8_t row = i / 3;
             uint8_t column = i % 3;
-            Actions action = static_cast<Actions>(i);
-            if (state.board[i] == BOARD_EMPTY)
+            auto action = static_cast<Actions>(i);
+            if (state.board.at(i) == FieldType::EMPTY)
             {
                 // check rows:
-                if (state.board[row * 3 + (column + 1) % 3] == state.board[row * 3 + (column + 2) % 3] &&
-                    state.board[row * 3 + (column + 2) % 3] != BOARD_EMPTY)
+                if (state.board.at(row * 3 + (column + 1) % 3) == state.board.at(row * 3 + (column + 2) % 3) &&
+                    state.board.at(row * 3 + (column + 2) % 3) != FieldType::EMPTY)
                 {
                     return action;
                 }
-                else if (state.board[((row + 1) % 3) * 3 + column] == state.board[((row + 2) % 3) * 3 + column] &&
-                         state.board[((row + 1) % 3) * 3 + column] != BOARD_EMPTY)
+                else if (state.board.at(((row + 1) % 3) * 3 + column) == state.board.at(((row + 2) % 3) * 3 + column) &&
+                         state.board.at(((row + 1) % 3) * 3 + column) != FieldType::EMPTY)
                 {
                     return action;
                 }
                 else if (row == column &&
-                         state.board[((row + 1) % 3) * 3 + (column + 1) % 3] ==
-                             state.board[((row + 2) % 3) * 3 + (column + 2) % 3] &&
-                         state.board[((row + 2) % 3) * 3 + (column + 2) % 3] != BOARD_EMPTY)
+                         state.board.at(((row + 1) % 3) * 3 + (column + 1) % 3) ==
+                             state.board.at(((row + 2) % 3) * 3 + (column + 2) % 3) &&
+                         state.board.at(((row + 2) % 3) * 3 + (column + 2) % 3) != FieldType::EMPTY)
                 {
                     return action;
                 }
                 else if (row == 2 - column &&
-                         state.board[((row + 1) % 3) * 3 + (column + 3 - 1) % 3] ==
-                             state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] &&
-                         state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] != BOARD_EMPTY)
+                         state.board.at(((row + 1) % 3) * 3 + (column + 3 - 1) % 3) ==
+                             state.board.at(((row + 2) % 3) * 3 + (column + 3 - 2) % 3) &&
+                         state.board.at(((row + 2) % 3) * 3 + (column + 3 - 2) % 3) != FieldType::EMPTY)
                 {
                     return action;
                 }
             }
         }
 
-        uint8_t actidx = rand() % state.num_remaining_actions;
-        for (uint8_t i = 0; i < 9; ++i)
+        uint8_t actidx = rand() % state.numRemainingActions;
+        for (uint8_t i = 0; i < BOARD_SIZE; ++i)
         {
-            if (state.board[i] == BOARD_EMPTY)
+            if (state.board.at(i) == FieldType::EMPTY)
             {
                 if (actidx == 0)
                 {

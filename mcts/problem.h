@@ -35,7 +35,7 @@ namespace mcts {
 
 template <typename ProblemType, typename ProblemDefinition>
 class Problem : public ProblemDefinition,  // To make all typedefs available
-                public detail::NeedsChanceEvents<ProblemDefinition::maxChanceEvents, ProblemType,
+                public detail::NeedsChanceEvents<ProblemDefinition::MAX_CHANCE_EVENTS, ProblemType,
                                                  ProblemDefinition>,  // to make sure that all chance events methods are
                                                                       // implemented
                 public detail::NeedActionFunction<ProblemType, ProblemDefinition>  // to make sure that all action
@@ -43,7 +43,7 @@ class Problem : public ProblemDefinition,  // To make all typedefs available
 {
   public:
     // checks to catch errors in ProblemDefinition early
-    static_assert(ProblemDefinition::maxNumActions > 1,
+    static_assert(ProblemDefinition::MAX_NUM_ACTIONS > 1,
                   "Number of actions must be > 1 so that we can plan with this problem ");
     static_assert(std::is_arithmetic_v<typename ProblemDefinition::ValueType>, "Valuetype must be arithmetic");
 

@@ -28,7 +28,7 @@ template <int numChance, class ProblemType, class ProblemDefinition>
 class NeedsChanceEvents
 {
   public:
-    static constexpr bool hasChanceEvents = true;  // NOLINT(readability-identifier-naming)
+    static constexpr bool HAS_CHANCE_EVENTS = true;
     using ChanceEventsVector =
         zbo::MaxSizeVector<std::pair<float, typename ProblemDefinition::ChanceEventType>, numChance>;
 
@@ -47,14 +47,15 @@ template <class ProblemType, class ProblemDefinition>
 class NeedsChanceEvents<0, ProblemType, ProblemDefinition>
 {
   public:
-    static constexpr bool hasChanceEvents = false;  // NOLINT(readability-identifier-naming)
+    static constexpr bool HAS_CHANCE_EVENTS = false;  // NOLINT(readability-identifier-naming)
 };
 
 template <class ProblemType, class ProblemDefinition>
 class NeedActionFunction
 {
   public:
-    using ActionsVector = zbo::MaxSizeVector<typename ProblemDefinition::ActionType, ProblemDefinition::maxNumActions>;
+    using ActionsVector =
+        zbo::MaxSizeVector<typename ProblemDefinition::ActionType, ProblemDefinition::MAX_NUM_ACTIONS>;
 
   private:
     /// Functions that should be implemented by the child classes. If you get a linker error pointing to here, use this

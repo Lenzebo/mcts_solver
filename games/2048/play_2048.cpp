@@ -20,24 +20,24 @@ int main(int, char**)
         {
             state.print();
             std::cout << "\n";
-            int32_t action_id{};
-            auto possible_actions = game.getAvailableActions(state);
+            int32_t actionId{};
+            auto possibleActions = game.getAvailableActions(state);
             size_t i = 0;
-            for (auto ac : possible_actions)
+            for (auto ac : possibleActions)
             {
                 std::cout << i << ": " << game.actionToString(state, ac) << "\n";
                 ++i;
             }
             std::cout << "Which Action should be performed?\n";
-            std::cin >> action_id;
-            totalValue += game.performAction(possible_actions[action_id], state);
+            std::cin >> actionId;
+            totalValue += game.performAction(possibleActions[actionId], state);
             std::cout << "Value: " << totalValue << "\n";
         }
         else
         {
-            auto possible_events = game.getAvailableChanceEvents(state);
+            auto possibleEvents = game.getAvailableChanceEvents(state);
             size_t i = 0;
-            for (auto ac : possible_events)
+            for (auto ac : possibleEvents)
             {
                 std::cout << i << ": (" << int(ac.second.x) << ", " << int(ac.second.y) << ")->" << int(ac.second.value)
                           << " with a probability of " << ac.first << "\n";

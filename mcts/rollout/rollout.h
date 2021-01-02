@@ -57,7 +57,7 @@ class RolloutPolicy
                     break;
                 }
                 case mcts::StageType::CHANCE: {
-                    if constexpr (ProblemType::hasChanceEvents)
+                    if constexpr (ProblemType::HAS_CHANCE_EVENTS)
                     {
                         auto reward = problem.performRandomChanceEvent(state);
                         retval = retval + currDiscount * reward;

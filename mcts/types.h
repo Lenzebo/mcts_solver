@@ -24,6 +24,7 @@
 
 #include "zbo/named_type.h"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 
@@ -48,25 +49,19 @@ struct NoEvent
 {
 };
 
-template <typename T, size_t N>
-std::array<T, N> operator+(const std::array<T, N>& a1, const std::array<T, N>& a2)
+template <typename T, size_t n>
+std::array<T, n> operator+(const std::array<T, n>& a1, const std::array<T, n>& a2)
 {
-    std::array<T, N> retval{};
-    for (size_t i = 0; i < N; ++i)
-    {
-        retval[i] = a1[i] + a2[i];
-    }
+    std::array<T, n> retval{};
+    std::transform(a1.begin(), a1.end(), a2.begin(), retval.begin(), std::plus{});
     return retval;
 }
 
-template <typename T, size_t N>
-std::array<T, N> operator*(const float f, const std::array<T, N>& a)
+template <typename T, size_t n>
+std::array<T, n> operator*(const float f, const std::array<T, n>& a)
 {
-    std::array<T, N> retval{};
-    for (size_t i = 0; i < N; ++i)
-    {
-        retval[i] = f * a[i];
-    }
+    std::array<T, n> retval{};
+    std::transform(a.begin(), a.end(), retval.begin(), [f](const T val) { return f * val; });
     return retval;
 }
 

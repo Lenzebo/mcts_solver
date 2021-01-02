@@ -89,13 +89,14 @@ struct ProblemDefinition
     using ChanceEventType = ChanceEvent;
     using StateType = G2048State;
 
-    static constexpr int numPlayers = 1;
-    static constexpr int maxNumActions = 4;
-    static constexpr int maxChanceEvents = 32;
+    static constexpr int NUM_PLAYERS = 1;
+    static constexpr int MAX_NUM_ACTIONS = 4;
+    static constexpr int MAX_CHANCE_EVENTS = 32;
 
     using ValueVector = ValueType;
 };
 
+//
 class G2048Problem : public mcts::Problem<G2048Problem, ProblemDefinition>
 {
   public:
