@@ -47,9 +47,9 @@ struct ProblemDefinition
     using ChanceEventType = SelectCoin;
     using StateType = RiggedToinCossState;
 
-    static constexpr int numPlayers = 1;       // NOLINT
-    static constexpr int maxNumActions = 2;    // NOLINT
-    static constexpr int maxChanceEvents = 2;  // NOLINT
+    static constexpr int NUM_PLAYERS = 1;
+    static constexpr int MAX_NUM_ACTIONS = 2;
+    static constexpr int MAX_CHANCE_EVENTS = 2;
 
     using ValueVector = ValueType;
 };
@@ -143,8 +143,8 @@ TEST(Problem, Constants)
 {
     RiggedToinCossProblem problem{};
 
-    ASSERT_EQ(problem.maxChanceEvents, 2);
-    ASSERT_EQ(problem.maxNumActions, 2);
+    ASSERT_EQ(problem.MAX_CHANCE_EVENTS, 2);
+    ASSERT_EQ(problem.MAX_NUM_ACTIONS, 2);
 }
 
 TEST(Problem, Flow)

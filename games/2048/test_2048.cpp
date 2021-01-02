@@ -9,9 +9,9 @@ TEST(Board, SetValues)
         for (size_t x = 0; x < 4; ++x)
         {
             g2048::Board board{};
-            uint8_t desVal = 0xF;
-            board.set(x, y, desVal);
-            EXPECT_EQ(board.at(x, y), desVal)
+            constexpr uint8_t DESIRED_VALUE = 0xF;
+            board.set(x, y, DESIRED_VALUE);
+            EXPECT_EQ(board.at(x, y), DESIRED_VALUE)
                 << " at position (" << x << "," << y << ") -> " << std::hex << board.raw() << "\n"
                 << board;
         }
@@ -24,7 +24,7 @@ std::array<std::array<uint8_t, 4>, 4> transpose(std::array<std::array<uint8_t, 4
     {
         for (uint8_t y = x + 1; y < 4; ++y)
         {
-            std::swap(val[x][y], val[y][x]);
+            std::swap(val.at(x).at(y), val.at(y).at(x));
         }
     }
     return val;

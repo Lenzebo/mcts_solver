@@ -16,22 +16,22 @@ void testGameStateTicTacToe()
 
     while (!game.isTerminal(state))
     {
-        auto possible_actions = game.getAvailableActions(state);
+        auto possibleActions = game.getAvailableActions(state);
 
         if (state.getCurrentPlayer() == 0)
         {
             state.print();
             std::cout << "\n";
-            int32_t action_id{};
+            int32_t actionId{};
             size_t i = 0;
-            for (auto ac : possible_actions)
+            for (auto ac : possibleActions)
             {
                 std::cout << i << ": " << game.actionToString(state, ac) << "\n";
                 ++i;
             }
             std::cout << "Which Action should be performed?\n";
-            std::cin >> action_id;
-            auto value = game.performAction(possible_actions[action_id], state);
+            std::cin >> actionId;
+            auto value = game.performAction(possibleActions[actionId], state);
             std::cout << "Value: " << value[0] << ", " << value[1] << "\n";
         }
         else
@@ -39,7 +39,7 @@ void testGameStateTicTacToe()
             state.print();
             std::cout << "\n";
             mcts::Solver<TicTacToeProblem, UCB1SelectionPolicy<float>, RolloutPolicy<ttt::TicTacToePolicy> > solver;
-            solver.parameter().numIterations = 100000;
+            solver.parameter().numIterations = 100000;  // NOLINT
             auto action = solver.run(game, state);
             solver.printTopLevelUtilities();
             auto value = game.performAction(action, state);

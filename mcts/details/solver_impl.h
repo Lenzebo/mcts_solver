@@ -133,7 +133,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::expansion(Solver::Node
 {
     assert(!chanceNode.events.empty());
 
-    if constexpr (ProblemType::hasChanceEvents)
+    if constexpr (ProblemType::HAS_CHANCE_EVENTS)
     {
         ValueVector values{};
         for (const auto& event : chanceNode.events)
@@ -181,9 +181,9 @@ Solver<ProblemType, SelectionPolicy, RolloutPolicy>::getTopLevelUtilities() cons
 
     for (size_t ac = 0; ac < actionMap.size(); ac++)
     {
-        if (actionMap[ac].count() > 0)
+        if (actionMap.at(ac).count() > 0)
         {
-            retval.emplace_back(decisionNode.actions[ac], actionMap[ac]);
+            retval.emplace_back(decisionNode.actions[ac], actionMap.at(ac));
         }
     }
 
@@ -204,7 +204,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::printTopLevelUtilities
 template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy>
 void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::init(const ProblemType& problem, const StateType& root)
 {
-    tree_.reserve(params_.numIterations * std::max(ProblemType::maxNumActions, ProblemType::maxChanceEvents));
+    tree_.reserve(params_.numIterations * std::max(ProblemType::MAX_NUM_ACTIONS, ProblemType::MAX_CHANCE_EVENTS));
     tree_.setRoot(Node{problem, root, DecisionNode{problem, root}});
     currentIteration_ = 0;
 }
@@ -260,7 +260,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::visitBackpropagate(Sol
                                                                              const Edge& edge,
                                                                              const ValueVector& values)
 {
-    if constexpr (ProblemType::numPlayers > 1)
+    if constexpr (ProblemType::NUM_PLAYERS > 1)
     {
         node.statistics.visitWithValue(edge.index, values[node.playerId]);
     }
@@ -290,13 +290,13 @@ Solver<ProblemType, SelectionPolicy, RolloutPolicy>::currentBestAction() const
     ValueType bestValue = std::numeric_limits<ValueType>::lowest();
     for (size_t ac = 0; ac < actionMap.size(); ac++)
     {
-        if (!actionMap[ac].visited())
+        if (!actionMap.at(ac).visited())
         {
             continue;
         }
-        if (actionMap[ac].value() > bestValue)
+        if (actionMap.at(ac).value() > bestValue)
         {
-            bestValue = actionMap[ac].value();
+            bestValue = actionMap.at(ac).value();
             bestAction = ac;
         }
     }

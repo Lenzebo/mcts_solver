@@ -44,7 +44,7 @@ class UCB1SelectionPolicy : public SelectionPolicy<UCB1SelectionPolicy<ValueType
     {
         ValueType min{0};
         ValueType max{1};
-        float explorationConstant{5};
+        float explorationConstant{5};  // NOLINT
     };
 
     UCB1SelectionPolicy() = default;

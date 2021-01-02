@@ -66,7 +66,7 @@ float BestPositionPolicy::getDifferenceScore(const g2048::G2048State& state) con
     {
         for (uint8_t y = 0; y < BOARD_DIMS - 1; y++)
         {
-            value += 2.0f * float(state.board(x, y)) - float(state.board(x + 1, y)) - float(state.board(x, y + 1));
+            value += 2 * float(state.board(x, y)) - float(state.board(x + 1, y)) - float(state.board(x, y + 1));
         }
     }
     return -value;
@@ -79,13 +79,13 @@ float BestPositionPolicy::getOrderingScoreAlongPath(const g2048::G2048State& sta
                                                     const std::vector<Point>& path) const
 {
     float score = 0;
-    constexpr float ratio = 0.9;
+    constexpr float RATIO = 0.9;
     float currRatio = 1.0f;
 
     for (auto pt : path)
     {
         score += float(state.board(pt.x, pt.y)) * currRatio;
-        currRatio *= ratio;
+        currRatio *= RATIO;
     }
     return score;
 }
@@ -93,7 +93,7 @@ float BestPositionPolicy::getOrderingScoreAlongPath(const g2048::G2048State& sta
 float BestPositionPolicy::getCornerHighestScore(const g2048::G2048State& state) const
 {
     auto maxScore = float(state.board().biggestExp());
-    float maxError = 19;
+    float maxError = maxScore;
 
     maxError = std::min(maxError, maxScore - float(state.board(0, 0)));
     maxError = std::min(maxError, maxScore - float(state.board(0, BOARD_DIMS - 1)));

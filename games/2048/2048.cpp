@@ -2,7 +2,7 @@
 
 namespace g2048 {
 
-std::ostream& G2048State::writeToStream(std::ostream& stream) const  // NOLINT
+std::ostream& G2048State::writeToStream(std::ostream& stream) const  // NOLINT(readability-identifier-naming)
 {
     stream << board();
     return mcts::State<G2048State>::writeToStream(stream);
