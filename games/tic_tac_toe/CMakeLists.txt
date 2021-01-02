@@ -1,3 +1,5 @@
 
 add_executable(solve_tic_tac_toe solve_tic_tac_toe.cpp)
+target_link_libraries(solve_tic_tac_toe mcts_solver)
 add_executable(play_tic_tac_toe play_tic_tac_toe.cpp)
+target_link_libraries(play_tic_tac_toe mcts_solver)

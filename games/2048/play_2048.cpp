@@ -1,13 +1,10 @@
-#include <iostream>
-#include "mcts/solver.h"
-#include "mcts/selection/ucb1.h"
-
-#include <iostream>
-#include <fstream>
-#include <chrono>
-
 #include "2048.h"
+#include "mcts/selection/ucb1.h"
 #include "mcts/solver.h"
+
+#include <chrono>
+#include <fstream>
+#include <iostream>
 
 using namespace mcts;
 
@@ -28,7 +25,7 @@ int main(int, char**)
             size_t i = 0;
             for (auto ac : possible_actions)
             {
-                std::cout << i << ": " << game.actionToString(state, ac)  << "\n";
+                std::cout << i << ": " << game.actionToString(state, ac) << "\n";
                 ++i;
             }
             std::cout << "Which Action should be performed?\n";

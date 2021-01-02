@@ -1,11 +1,10 @@
-#include <iostream>
-#include <fstream>
-#include <chrono>
-
-#include "tic_tac_toe.h"
 #include "mcts/solver.h"
-
 #include "mcts/tree_export.h"
+#include "tic_tac_toe.h"
+
+#include <chrono>
+#include <fstream>
+#include <iostream>
 
 using namespace mcts;
 using namespace ttt;
@@ -49,7 +48,6 @@ void testGameStateTicTacToe()
         }
     }
 }
-
 
 int main(int, char**)
 {

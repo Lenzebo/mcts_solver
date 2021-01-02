@@ -1,14 +1,13 @@
 #include "mcts/problem.h"
-#include "mcts/state.h"
-#include "mcts/utils/max_size_vector.h"
 #include "mcts/solver.h"
+#include "mcts/state.h"
 #include "mcts/tree_export.h"
+#include "zbo/max_size_vector.h"
 
 #include <gtest/gtest.h>
-#include <optional>
 
-// template <int NUM_PLAYERS, int MAX_NUM_ACTIONS, typename STATE_TYPE, typename ACTION_TYPE = uint8_t,
-//          typename VALUE_TYPE = float, int MAX_CHANCE_EVENTS = 0, typename CHANCE_TYPE = uint8_t>
+#include <cassert>
+#include <optional>
 
 enum class SelectCoin
 {
@@ -25,6 +24,9 @@ std::string to_string(SelectCoin c)
         case SelectCoin::TAILS:
             return "TAILS";
     }
+
+    assert(false);
+    return "";
 }
 
 std::ostream& operator<<(std::ostream& str, SelectCoin c)
@@ -45,9 +47,9 @@ struct ProblemDefinition
     using ChanceEventType = SelectCoin;
     using StateType = RiggedToinCossState;
 
-    static constexpr int numPlayers = 1;
-    static constexpr int maxNumActions = 2;
-    static constexpr int maxChanceEvents = 2;
+    static constexpr int numPlayers = 1;       // NOLINT
+    static constexpr int maxNumActions = 2;    // NOLINT
+    static constexpr int maxChanceEvents = 2;  // NOLINT
 
     using ValueVector = ValueType;
 };
@@ -55,9 +57,9 @@ struct ProblemDefinition
 class RiggedToinCossProblem : public mcts::Problem<RiggedToinCossProblem, ProblemDefinition>
 {
   public:
-    [[nodiscard]] mcts::MaxSizeVector<ActionType, 2> getAvailableActions(const RiggedToinCossState& state) const
+    [[nodiscard]] zbo::MaxSizeVector<ActionType, 2> getAvailableActions(const RiggedToinCossState& state) const
     {
-        mcts::MaxSizeVector<ActionType, 2> retval{};
+        zbo::MaxSizeVector<ActionType, 2> retval{};
 
         if (!state.player.has_value())  // player did not perform any action yet
         {
@@ -72,11 +74,11 @@ class RiggedToinCossProblem : public mcts::Problem<RiggedToinCossProblem, Proble
      */
     [[nodiscard]] auto getAvailableChanceEvents(const RiggedToinCossState& state) const
     {
-        mcts::MaxSizeVector<std::pair<float, SelectCoin>, 2> retval;
+        zbo::MaxSizeVector<std::pair<float, SelectCoin>, 2> retval;
         if (state.player.has_value() && !state.world.has_value())
         {
-            retval.push_back({0.7f, SelectCoin::HEADS});
-            retval.push_back({0.3f, SelectCoin::TAILS});
+            retval.push_back({PROBABILITY_HEADS, SelectCoin::HEADS});
+            retval.push_back({1.0 - PROBABILITY_HEADS, SelectCoin::TAILS});
         }
         return retval;
     }
@@ -131,8 +133,10 @@ class RiggedToinCossProblem : public mcts::Problem<RiggedToinCossProblem, Proble
         return performAction(ac, state);
     }
 
+    static constexpr double PROBABILITY_HEADS = 0.7;
+
     mutable std::minstd_rand0 engine{};
-    mutable std::bernoulli_distribution bernoulli{0.7};
+    mutable std::bernoulli_distribution bernoulli{PROBABILITY_HEADS};
 };
 
 TEST(Problem, Constants)
@@ -173,15 +177,18 @@ TEST(Solver, GT)
 
     mcts::Solver<RiggedToinCossProblem> solver{};
 
-    solver.parameter().numIterations = 10;
+    constexpr size_t START_ITERATIONS = 10;
+    constexpr size_t NUM_INCREASE_ITERATIONS = 5;
 
-    for (size_t i = 0; i < 5; i++)
+    solver.parameter().numIterations = START_ITERATIONS;
+
+    for (size_t i = 0; i < NUM_INCREASE_ITERATIONS; i++)
     {
         std::cout << "iterations " << solver.parameter().numIterations << "\n";
         auto action = solver.run(problem, state);
         solver.printTopLevelUtilities();
-        ASSERT_EQ(action, SelectCoin::HEADS);
-        solver.parameter().numIterations *= 10;
+        EXPECT_EQ(action, SelectCoin::HEADS);
+        solver.parameter().numIterations *= START_ITERATIONS;
 
         mcts::dot::exportTreeToDot<RiggedToinCossProblem>(solver.tree(), std::cout);
         mcts::dot::exportTreeToDot<RiggedToinCossProblem>(solver.tree(), "tree.dot");

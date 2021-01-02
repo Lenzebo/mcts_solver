@@ -1,16 +1,14 @@
 
-#include <iostream>
-#include "mcts/solver.h"
-#include "mcts/selection/ucb1.h"
-
-#include <iostream>
-#include <fstream>
-#include <chrono>
-#include <algorithm>
-#include <map>
-
 #include "2048.h"
+#include "mcts/selection/ucb1.h"
+#include "mcts/solver.h"
 #include "policies.h"
+
+#include <algorithm>
+#include <chrono>
+#include <fstream>
+#include <iostream>
+#include <map>
 
 using namespace mcts;
 
@@ -30,7 +28,7 @@ Result playG2048WithPolicy(Policy& policy)
     g2048::G2048Problem game(std::random_device().operator()());
     g2048::G2048Problem::ValueVector rewards{};
     size_t numMoves = 0;
-    auto start = std::chrono::system_clock::now();
+    const auto start = std::chrono::system_clock::now();
     while (!game.isTerminal(state))
     {
         if (game.getNextStageType(state) == mcts::StageType::DECISION)
@@ -38,18 +36,19 @@ Result playG2048WithPolicy(Policy& policy)
             auto action = policy.getAction(state, game);
             rewards += game.performAction(action, state);
             numMoves++;
-                       //state.print();
+            // state.print();
         }
         else
         {
             rewards += game.performRandomChanceEvent(state);
         }
     }
-    //state.print();
+    // state.print();
     //    std::cout << "Final score is " << rewards << "\n";
 
-    auto end = std::chrono::system_clock::now();
-    return {rewards, state.board().biggestTile(), state, numMoves, end - start};
+    const auto end = std::chrono::system_clock::now();
+    const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    return {rewards, state.board().biggestTile(), state, numMoves, duration};
 }
 
 auto getMCTSSolverRandomRollout(size_t numIterations = 1000)
@@ -145,14 +144,12 @@ int main(int, char**)
         evaluatePolicy(g2048::FixedSequencePolicy{}, count);
     }
 
-
     {
         std::cout << "#### MCRolloutPolicy (1 / 10 / 0.95): " << std::endl;
         evaluatePolicy(g2048::MCRolloutPolicy{10, 10, 0.95f}, count);
     }
 
     return 0;
-
 
     {
         std::cout << "#### MCRolloutPolicy: " << std::endl;

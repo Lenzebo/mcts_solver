@@ -1,12 +1,35 @@
+// MIT License
+//
+// Copyright (c) 2020 Lenzebo
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 #pragma once
 
+#include "mcts/problem.h"
+#include "mcts/state.h"
+#include "zbo/max_size_vector.h"
+
 #include <assert.h>
+
 #include <array>
 #include <iostream>
-
-#include "mcts/state.h"
-#include "mcts/problem.h"
-#include "mcts/utils/max_size_vector.h"
 
 #define BOARD_EMPTY 0
 
@@ -75,9 +98,9 @@ class TicTacToeProblem : public mcts::Problem<TicTacToeProblem, ProblemDefinitio
     /**
      * Should return a list of all possible actions for this player
      */
-    [[nodiscard]] mcts::MaxSizeVector<ActionType, 9> getAvailableActions(const TicTacToeState& state) const
+    [[nodiscard]] zbo::MaxSizeVector<ActionType, 9> getAvailableActions(const TicTacToeState& state) const
     {
-        mcts::MaxSizeVector<ActionType, 9> remaining_actions;
+        zbo::MaxSizeVector<ActionType, 9> remaining_actions;
         if (state.num_remaining_actions == 0)  // if somebody did win, then there are no possible actions anymore
         {
             return {};
@@ -196,7 +219,7 @@ class TicTacToeProblem : public mcts::Problem<TicTacToeProblem, ProblemDefinitio
 class TicTacToePolicy
 {
   public:
-    static Actions getAction(const TicTacToeState& state, const TicTacToeProblem& )
+    static Actions getAction(const TicTacToeState& state, const TicTacToeProblem&)
     {
         assert(state.num_remaining_actions > 0);
 
@@ -221,14 +244,14 @@ class TicTacToePolicy
                 }
                 else if (row == column &&
                          state.board[((row + 1) % 3) * 3 + (column + 1) % 3] ==
-                         state.board[((row + 2) % 3) * 3 + (column + 2) % 3] &&
+                             state.board[((row + 2) % 3) * 3 + (column + 2) % 3] &&
                          state.board[((row + 2) % 3) * 3 + (column + 2) % 3] != BOARD_EMPTY)
                 {
                     return action;
                 }
                 else if (row == 2 - column &&
                          state.board[((row + 1) % 3) * 3 + (column + 3 - 1) % 3] ==
-                         state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] &&
+                             state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] &&
                          state.board[((row + 2) % 3) * 3 + (column + 3 - 2) % 3] != BOARD_EMPTY)
                 {
                     return action;
@@ -255,4 +278,4 @@ class TicTacToePolicy
         return {};
     }
 };
-}
+}  // namespace ttt

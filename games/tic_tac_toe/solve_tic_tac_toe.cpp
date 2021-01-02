@@ -1,5 +1,5 @@
-#include "tic_tac_toe.h"
 #include "mcts/solver.h"
+#include "tic_tac_toe.h"
 
 #include <chrono>
 #include <iostream>

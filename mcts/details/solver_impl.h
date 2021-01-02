@@ -1,7 +1,30 @@
+// MIT License
+//
+// Copyright (c) 2020 Lenzebo
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 #pragma once
 
 #include "../solver.h"
 
+#include <cassert>
 #include <iomanip>
 #include <iostream>
 
@@ -69,9 +92,9 @@ NodeId Solver<ProblemType, SelectionPolicy, RolloutPolicy>::selectionOnce(const 
     {
         return INVALID_NODE;
     }
-    auto best_child = selectionPolicy_.selectSuccessor(node);
-    assert(best_child != std::numeric_limits<size_t>::max());
-    auto selectedNodeId = tree_[node.outgoingEdges[best_child]].child;
+    auto bestChild = selectionPolicy_.selectSuccessor(node);
+    assert(bestChild != std::numeric_limits<size_t>::max());
+    auto selectedNodeId = tree_[node.outgoingEdges[bestChild]].child;
     return selectedNodeId;
 }
 
@@ -90,10 +113,10 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::expansion(const Node& 
 
     for (const auto& action : decNode.actions)
     {
-        auto new_state = currentNode.state;
-        ValueVector rewards = currentNode.problem.performAction(action, new_state);
+        auto newState = currentNode.state;
+        ValueVector rewards = currentNode.problem.performAction(action, newState);
 
-        Node newNode(currentNode.problem, new_state);
+        Node newNode(currentNode.problem, newState);
         newNode.nodeValue = currentNode.nodeValue + rewards;
         auto [nodeId, edgeId] = tree_.insert(currentNode.nodeId, std::move(newNode));
         (void)edgeId;
@@ -115,10 +138,10 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::expansion(Solver::Node
         ValueVector values{};
         for (const auto& event : chanceNode.events)
         {
-            auto new_state = currentNode.state;
-            ValueVector rewards = currentNode.problem.performChanceEvent(event.second, new_state);
+            auto newState = currentNode.state;
+            ValueVector rewards = currentNode.problem.performChanceEvent(event.second, newState);
 
-            Node newNode(currentNode.problem, new_state);
+            Node newNode(currentNode.problem, newState);
             newNode.nodeValue = currentNode.nodeValue + rewards;
             auto [nodeId, edgeId] = tree_.insert(currentNode.nodeId, std::move(newNode));
             (void)edgeId;
@@ -190,17 +213,17 @@ template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy
 void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::iteration()
 {
     // Selection
-    auto selected_node = selection();
-    assert(selected_node != INVALID_NODE);
-    const auto& selectedNode = tree_[selected_node];
+    auto selectedNodeId = selection();
+    assert(selectedNodeId != INVALID_NODE);
+    const auto& selectedNode = tree_[selectedNodeId];
     if (selectedNode.isTerminal())
     {
-        backpropagate(selected_node, selectedNode.nodeValue);
+        backpropagate(selectedNodeId, selectedNode.nodeValue);
     }
     else
     {
         // expand all actions/chance events for this particular node to gain an estimate
-        expansion(selected_node);
+        expansion(selectedNodeId);
     }
 }
 

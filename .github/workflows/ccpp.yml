@@ -1,0 +1,46 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: DoozyX/clang-format-lint-action@v0.5
+        with:
+          source: '.'
+          extensions: 'h,cpp'
+          clangFormatVersion: 9
+
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: lenzebo/zbo:v2
+    needs: [lint]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: run-cmake
+        uses: lukka/run-cmake@v2
+        with:
+          cmakeBuildType: $BUILD_TYPE
+          buildWithCMake: true
+          buildDirectory: ${{runner.workspace}}/build
+      - name: Run unit tests
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: ctest -C $BUILD_TYPE
+
+
