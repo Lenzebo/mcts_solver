@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ master ]
 env:
-  BUILD_TYPE: Release
+  BUILD_TYPE: Debug
 
 jobs:
   lint:
@@ -14,13 +14,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v2
-        with:
-          submodules: true
-      - uses: DoozyX/clang-format-lint-action@v0.5
+      - uses: DoozyX/clang-format-lint-action@v0.11
         with:
           source: '.'
           extensions: 'h,cpp'
-          clangFormatVersion: 9
+          clangFormatVersion: 11
 
   build:
     runs-on: ubuntu-latest
