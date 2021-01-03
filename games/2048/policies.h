@@ -96,10 +96,7 @@ class MCRolloutPolicy : public mcts::RandomRolloutPolicy
     [[nodiscard]] float rolloutMultiple(const g2048::G2048State state, const g2048::G2048Problem& game)
     {
         float avg = 0;
-        for (size_t i = 0; i < iterations_; ++i)
-        {
-            avg += rollout(state, game);
-        }
+        for (size_t i = 0; i < iterations_; ++i) { avg += rollout(state, game); }
         return avg / iterations_;
     }
 

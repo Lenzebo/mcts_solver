@@ -76,10 +76,7 @@ class TicTacToeState : public mcts::State<TicTacToeState>
         for (uint8_t i = 0; i < BOARD_SIZE; ++i)
         {
             stream << int(board.at(i)) << " ";
-            if (i % 3 == 2)
-            {
-                stream << "\n";
-            }
+            if (i % 3 == 2) { stream << "\n"; }
         }
         return mcts::State<TicTacToeState>::writeToStream(stream);
     }
@@ -159,10 +156,7 @@ class TicTacToeProblem : public mcts::Problem<TicTacToeProblem, ProblemDefinitio
         ActionVec remaining{};
         for (uint8_t i = 0; i < BOARD_SIZE; ++i)
         {
-            if (state.board.at(i) == FieldType::EMPTY)
-            {
-                remaining.push_back(static_cast<Actions>(i));
-            }
+            if (state.board.at(i) == FieldType::EMPTY) { remaining.push_back(static_cast<Actions>(i)); }
         }
         return remaining;
     };
@@ -203,10 +197,7 @@ class TicTacToeProblem : public mcts::Problem<TicTacToeProblem, ProblemDefinitio
 
     [[nodiscard]] bool didPlayerWin(const TicTacToeState& state, uint8_t player) const
     {
-        if (state.numRemainingActions > 4)
-        {
-            return false;
-        }
+        if (state.numRemainingActions > 4) { return false; }
 
         const auto pp1 = static_cast<FieldType>(player + 1);
 
@@ -266,10 +257,7 @@ class TicTacToePolicy
         {
             if (state.board.at(i) == FieldType::EMPTY)
             {
-                if (actidx == 0)
-                {
-                    return static_cast<Actions>(i);
-                }
+                if (actidx == 0) { return static_cast<Actions>(i); }
                 else
                 {
                     actidx--;

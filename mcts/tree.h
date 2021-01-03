@@ -80,10 +80,7 @@ struct Tree
         {
             explicit ChanceNode(const ProblemType& p, const StateType& s) noexcept
             {
-                if constexpr (ProblemType::HAS_CHANCE_EVENTS)
-                {
-                    events = p.getAvailableChanceEvents(s);
-                }
+                if constexpr (ProblemType::HAS_CHANCE_EVENTS) { events = p.getAvailableChanceEvents(s); }
             }
             zbo::MaxSizeVector<ChanceEventWithProbability, ProblemType::MAX_CHANCE_EVENTS> events;
         };
@@ -188,10 +185,7 @@ struct Tree
 
     [[nodiscard]] Tree subTree(NodeId parent) const
     {
-        if (!contains(parent))
-        {
-            return {};
-        }
+        if (!contains(parent)) { return {}; }
 
         Tree tree{};
         tree.reserve(nodes_.capacity());

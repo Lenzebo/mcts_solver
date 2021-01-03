@@ -50,10 +50,7 @@ class SelectionPolicy
         size_t counter = 0;
         for (const auto& ev : chance.events)
         {
-            if (randVal < ev.first)
-            {
-                return counter;
-            }
+            if (randVal < ev.first) { return counter; }
             randVal -= ev.first;
             counter++;
         }

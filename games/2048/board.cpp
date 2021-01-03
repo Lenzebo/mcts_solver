@@ -38,10 +38,7 @@ void Board::transpose()
 
 size_t Board::numEmpty() const
 {
-    if (values_ == 0)
-    {
-        return 16;
-    }
+    if (values_ == 0) { return 16; }
 
     auto x = values_;
     x |= (x >> 2U) & 0x3333333333333333ULL;
@@ -62,10 +59,7 @@ uint8_t Board::biggestExp() const
     uint8_t max = 0;
     for (uint8_t y = 0; y < BOARD_DIMS; ++y)
     {
-        for (uint8_t x = 0; x < BOARD_DIMS; ++x)
-        {
-            max = std::max(max, at(x, y));
-        }
+        for (uint8_t x = 0; x < BOARD_DIMS; ++x) { max = std::max(max, at(x, y)); }
     }
     return max;
 }
@@ -78,10 +72,7 @@ Board::Board(std::array<std::array<uint8_t, BOARD_DIMS>, BOARD_DIMS> cells)
 {
     for (uint8_t y = 0; y < BOARD_DIMS; ++y)
     {
-        for (uint8_t x = 0; x < BOARD_DIMS; ++x)
-        {
-            set(x, y, cells[x][y]);
-        }
+        for (uint8_t x = 0; x < BOARD_DIMS; ++x) { set(x, y, cells[x][y]); }
     }
 }
 
@@ -108,10 +99,7 @@ std::ostream& operator<<(std::ostream& os, const Board& board)
         for (uint8_t x = 0; x < BOARD_DIMS; ++x)
         {
             auto c = board.at(x, y);
-            if (c > 0)
-            {
-                os << std::setw(5) << int(1U << board.at(x, y)) << " ";
-            }
+            if (c > 0) { os << std::setw(5) << int(1U << board.at(x, y)) << " "; }
             else
             {
                 os << std::setw(6) << "0 ";

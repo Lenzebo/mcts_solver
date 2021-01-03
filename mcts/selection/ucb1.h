@@ -67,10 +67,7 @@ class UCB1SelectionPolicy : public SelectionPolicy<UCB1SelectionPolicy<ValueType
         {
             index++;
 
-            if (!m.visited())
-            {
-                continue;
-            }
+            if (!m.visited()) { continue; }
 
             float currentUTC = m.value() + currExplorationConstant * sqrt(2 * logVisits / float(m.count()));
 

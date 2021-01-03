@@ -85,10 +85,7 @@ class RiggedToinCossProblem : public mcts::Problem<RiggedToinCossProblem, Proble
 
     [[nodiscard]] static mcts::StageType getNextStageType(const RiggedToinCossState& state)
     {
-        if (state.player.has_value() && !state.world.has_value())
-        {
-            return mcts::StageType::CHANCE;
-        }
+        if (state.player.has_value() && !state.world.has_value()) { return mcts::StageType::CHANCE; }
         else
         {
             return mcts::StageType::DECISION;
@@ -110,19 +107,13 @@ class RiggedToinCossProblem : public mcts::Problem<RiggedToinCossProblem, Proble
     {
         state.world = ce;
 
-        if (state.player == state.world)
-        {
-            return 1;
-        }
+        if (state.player == state.world) { return 1; }
         return {};
     }
 
     ValueVector performRandomChanceEvent(RiggedToinCossState& state) const
     {
-        if (bernoulli(engine))
-        {
-            return performChanceEvent(SelectCoin::HEADS, state);
-        }
+        if (bernoulli(engine)) { return performChanceEvent(SelectCoin::HEADS, state); }
         return performChanceEvent(SelectCoin::TAILS, state);
     }
 

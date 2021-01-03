@@ -22,10 +22,7 @@ std::array<std::array<uint8_t, 4>, 4> transpose(std::array<std::array<uint8_t, 4
 {
     for (uint8_t x = 0; x < 4; ++x)
     {
-        for (uint8_t y = x + 1; y < 4; ++y)
-        {
-            std::swap(val.at(x).at(y), val.at(y).at(x));
-        }
+        for (uint8_t y = x + 1; y < 4; ++y) { std::swap(val.at(x).at(y), val.at(y).at(x)); }
     }
     return val;
 }
