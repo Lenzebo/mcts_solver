@@ -67,10 +67,7 @@ class RolloutPolicy
             }
             depth++;
             currDiscount *= discount_;
-            if (depth > rolloutDepth_)
-            {
-                break;
-            }
+            if (depth > rolloutDepth_) { break; }
         }
         return retval;
     }

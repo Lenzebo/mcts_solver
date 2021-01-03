@@ -76,10 +76,7 @@ NodeId Solver<ProblemType, SelectionPolicy, RolloutPolicy>::selection()
     while (true)
     {
         auto selectedNodeId = selectionOnce(*currentNode);
-        if (selectedNodeId == INVALID_NODE)
-        {
-            return currentNodeId;
-        }
+        if (selectedNodeId == INVALID_NODE) { return currentNodeId; }
         currentNodeId = selectedNodeId;
         currentNode = &tree_[selectedNodeId];
     }
@@ -88,10 +85,7 @@ NodeId Solver<ProblemType, SelectionPolicy, RolloutPolicy>::selection()
 template <typename ProblemType, typename SelectionPolicy, typename RolloutPolicy>
 NodeId Solver<ProblemType, SelectionPolicy, RolloutPolicy>::selectionOnce(const Solver::Node& node)
 {
-    if (node.isTerminal() || node.isLeaf())
-    {
-        return INVALID_NODE;
-    }
+    if (node.isTerminal() || node.isLeaf()) { return INVALID_NODE; }
     auto bestChild = selectionPolicy_.selectSuccessor(node);
     assert(bestChild != std::numeric_limits<size_t>::max());
     auto selectedNodeId = tree_[node.outgoingEdges[bestChild]].child;
@@ -181,10 +175,7 @@ Solver<ProblemType, SelectionPolicy, RolloutPolicy>::getTopLevelUtilities() cons
 
     for (size_t ac = 0; ac < actionMap.size(); ac++)
     {
-        if (actionMap.at(ac).count() > 0)
-        {
-            retval.emplace_back(decisionNode.actions[ac], actionMap.at(ac));
-        }
+        if (actionMap.at(ac).count() > 0) { retval.emplace_back(decisionNode.actions[ac], actionMap.at(ac)); }
     }
 
     return retval;
@@ -216,10 +207,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::iteration()
     auto selectedNodeId = selection();
     assert(selectedNodeId != INVALID_NODE);
     const auto& selectedNode = tree_[selectedNodeId];
-    if (selectedNode.isTerminal())
-    {
-        backpropagate(selectedNodeId, selectedNode.nodeValue);
-    }
+    if (selectedNode.isTerminal()) { backpropagate(selectedNodeId, selectedNode.nodeValue); }
     else
     {
         // expand all actions/chance events for this particular node to gain an estimate
@@ -234,10 +222,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::backpropagate(const No
     auto currentNodeId = expandedNode;
     while (true)
     {
-        if (currentNodeId == ROOT_NODE)
-        {
-            break;
-        }
+        if (currentNodeId == ROOT_NODE) { break; }
 
         // traverse the tree upward, as its a tree only one parent can be present
         const auto& currentNode = tree_[currentNodeId];
@@ -260,10 +245,7 @@ void Solver<ProblemType, SelectionPolicy, RolloutPolicy>::visitBackpropagate(Sol
                                                                              const Edge& edge,
                                                                              const ValueVector& values)
 {
-    if constexpr (ProblemType::NUM_PLAYERS > 1)
-    {
-        node.statistics.visitWithValue(edge.index, values[node.playerId]);
-    }
+    if constexpr (ProblemType::NUM_PLAYERS > 1) { node.statistics.visitWithValue(edge.index, values[node.playerId]); }
     else
     {
         assert(!std::isnan(values));
@@ -290,10 +272,7 @@ Solver<ProblemType, SelectionPolicy, RolloutPolicy>::currentBestAction() const
     ValueType bestValue = std::numeric_limits<ValueType>::lowest();
     for (size_t ac = 0; ac < actionMap.size(); ac++)
     {
-        if (!actionMap.at(ac).visited())
-        {
-            continue;
-        }
+        if (!actionMap.at(ac).visited()) { continue; }
         if (actionMap.at(ac).value() > bestValue)
         {
             bestValue = actionMap.at(ac).value();

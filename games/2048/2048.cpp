@@ -38,10 +38,7 @@ std::string G2048Problem::actionToString(const StateType& state, const ActionTyp
 }
 mcts::StageType G2048Problem::getNextStageType(const G2048State& state)
 {
-    if (state.isChanceNext())
-    {
-        return mcts::StageType::CHANCE;
-    }
+    if (state.isChanceNext()) { return mcts::StageType::CHANCE; }
     else
     {
         return mcts::StageType::DECISION;
@@ -53,29 +50,14 @@ mcts::StageType G2048Problem::getNextStageType(const G2048State& state)
  */
 [[nodiscard]] zbo::MaxSizeVector<Actions, 4> G2048Problem::getAvailableActions(const G2048State& state) const
 {
-    if (state.isChanceNext())
-    {
-        return {};
-    }
+    if (state.isChanceNext()) { return {}; }
 
     zbo::MaxSizeVector<Actions, 4> retval{};
     auto can = canMove(state);
-    if (can.up)
-    {
-        retval.push_back(UP);
-    }
-    if (can.left)
-    {
-        retval.push_back(LEFT);
-    }
-    if (can.right)
-    {
-        retval.push_back(RIGHT);
-    }
-    if (can.down)
-    {
-        retval.push_back(DOWN);
-    }
+    if (can.up) { retval.push_back(UP); }
+    if (can.left) { retval.push_back(LEFT); }
+    if (can.right) { retval.push_back(RIGHT); }
+    if (can.down) { retval.push_back(DOWN); }
     return retval;
 };
 
@@ -86,10 +68,7 @@ mcts::StageType G2048Problem::getNextStageType(const G2048State& state)
     const G2048State& state) const
 {
     zbo::MaxSizeVector<std::pair<float, ChanceEvent>, NUM_CELLS * 2> retval;
-    if (!state.isChanceNext())
-    {
-        return retval;
-    }
+    if (!state.isChanceNext()) { return retval; }
 
     size_t numEmpty = countEmptyCells(state);
 
@@ -170,10 +149,7 @@ ProblemDefinition::ValueVector G2048Problem::performAction(const ActionType acti
                 const size_t xd = upDown ? otherdim : xyd;
                 const size_t yd = upDown ? xyd : otherdim;
 
-                if (state.board(xd, yd) == 0)
-                {
-                    continue;
-                }
+                if (state.board(xd, yd) == 0) { continue; }
 
                 if (state.board(x, y) == 0)
                 {
@@ -198,10 +174,7 @@ ProblemDefinition::ValueVector G2048Problem::performAction(const ActionType acti
                     break;
                 }
             }
-            if (changed)
-            {
-                xy -= increment;
-            }
+            if (changed) { xy -= increment; }
         }
     }
 
@@ -240,31 +213,16 @@ G2048Problem::CanMove G2048Problem::canMove(const G2048State& state) const
             if (x < BOARD_DIMS - 1)
             {
                 auto cright = state.board(x + 1, y);
-                if (cright > 0 && (c == 0 || c == cright))
-                {
-                    retval.left = true;
-                }
-                if (c > 0 && (cright == 0 || c == cright))
-                {
-                    retval.right = true;
-                }
+                if (cright > 0 && (c == 0 || c == cright)) { retval.left = true; }
+                if (c > 0 && (cright == 0 || c == cright)) { retval.right = true; }
             }
             if (y < BOARD_DIMS - 1)
             {
                 auto cbelow = state.board(x, y + 1);
-                if (cbelow > 0 && (c == 0 || c == cbelow))
-                {
-                    retval.up = true;
-                }
-                if (c > 0 && (cbelow == 0 || c == cbelow))
-                {
-                    retval.down = true;
-                }
+                if (cbelow > 0 && (c == 0 || c == cbelow)) { retval.up = true; }
+                if (c > 0 && (cbelow == 0 || c == cbelow)) { retval.down = true; }
             }
-            if (retval.all())
-            {
-                return retval;
-            }
+            if (retval.all()) { return retval; }
         }
     }
     return retval;
@@ -289,16 +247,10 @@ void G2048Problem::addRandomElement(G2048State& state) const
     {
         for (uint8_t y = 0; y < BOARD_DIMS; ++y)
         {
-            if (state.board(x, y) != 0)
-            {
-                continue;
-            }
+            if (state.board(x, y) != 0) { continue; }
             if (randNum == 0)
             {
-                if (bernoulli_(engine_))
-                {
-                    state.setBoard(x, y, 1);
-                }
+                if (bernoulli_(engine_)) { state.setBoard(x, y, 1); }
                 else
                 {
                     state.setBoard(x, y, 2);

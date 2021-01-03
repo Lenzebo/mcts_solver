@@ -77,10 +77,7 @@ class NodeStatistic
         statistics_.at(idx).add(val);
         visitCount_++;
 
-        if (visitCount_ == 1)
-        {
-            min_ = max_ = val;
-        }
+        if (visitCount_ == 1) { min_ = max_ = val; }
         else
         {
             min_ = std::min(min_, val);

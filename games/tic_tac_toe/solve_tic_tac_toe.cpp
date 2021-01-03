@@ -33,10 +33,7 @@ int testMCTSTicTacToe(bool switchPlayers, size_t& mctsIterations)
     }
 
     int result = int(rewards[0] * 2 - 1);
-    if (result == 1)
-    {
-        return 1 - switchPlayers;
-    }
+    if (result == 1) { return 1 - switchPlayers; }
     else if (result == -1)
     {
         return switchPlayers;
@@ -66,10 +63,7 @@ int main(int, char**)
 
         const bool switchPlayers = i % 2 == 0;
         const int retval = testMCTSTicTacToe(switchPlayers, mctsIterations);
-        if (retval == 0)
-        {
-            numWins1++;
-        }
+        if (retval == 0) { numWins1++; }
         else if (retval == 1)
         {
             numWins2++;

@@ -85,10 +85,7 @@ template <typename ProblemType>
 void exportTreeToDot(const Tree<ProblemType>& tree, std::ostream& stream)
 {
     stream << "digraph mcts { \n";
-    for (const auto& node : tree.nodes())
-    {
-        exportNode<ProblemType>(node, tree, stream);
-    }
+    for (const auto& node : tree.nodes()) { exportNode<ProblemType>(node, tree, stream); }
 
     stream << "}\n";
 }
