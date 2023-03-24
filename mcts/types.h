@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <array>
+#include <string>
 
 namespace mcts {
 enum class StageType
