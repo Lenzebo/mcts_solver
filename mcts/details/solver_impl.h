@@ -31,6 +31,9 @@ Solver<ProblemType, SelectionPolicy, RolloutPolicy>::runFromExistingTree(NodeId 
 {
     running_ = true;
     tree_ = tree_.subTree(newRoot);
+    tree_.reserve(tree_.numNodes() +
+                  params_.numIterations * std::max(ProblemType::maxNumActions, ProblemType::maxChanceEvents));
+
     currentIteration_ = 0;
 
     while (currentIteration_ < params_.numIterations)

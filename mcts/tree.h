@@ -145,6 +145,8 @@ struct Tree
         edges_.reserve(expectedNodes - 1);
     }
 
+    [[nodiscard]] size_t numNodes() const { return nodes_.size(); }
+
     void setRoot(Node root)
     {
         clear();
@@ -228,4 +230,4 @@ struct Tree
     std::vector<Edge> edges_;
 };
 
-}
+}  // namespace mcts
